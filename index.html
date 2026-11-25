@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sopralluoghi RSPP</title>
+<meta name="theme-color" content="#1d4f7a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sopralluogo">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+/* Layout: barra di avanzamento fissa, screening in alto, sezioni a fisarmonica, riepilogo in fondo. */
+:root{
+  --bg:#f6f7f8; --panel:#ffffff; --ink:#1b2530; --muted:#5d6b7a; --line:#d9dee4;
+  --accent:#1d4f7a; --accent-ink:#ffffff; --accent-soft:#e4eef7;
+  --ok:#1f7a4a; --ok-soft:#e1f3e9; --no:#b3261e; --no-soft:#fbe6e4;
+  --ver:#9a6200; --ver-soft:#fdf0d5; --na:#5d6b7a; --na-soft:#e9edf1;
+  --font:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171d; --panel:#1b222a; --ink:#e6ebf0; --muted:#9aa8b6; --line:#2f3a46;
+  --accent:#6fb0e6; --accent-ink:#0d1620; --accent-soft:#1f3345;
+  --ok:#57c78a; --ok-soft:#173a29; --no:#ff8a80; --no-soft:#47201d;
+  --ver:#f0b44c; --ver-soft:#3f3015; --na:#9aa8b6; --na-soft:#27313b; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#12171d; --panel:#1b222a; --ink:#e6ebf0; --muted:#9aa8b6; --line:#2f3a46;
+  --accent:#6fb0e6; --accent-ink:#0d1620; --accent-soft:#1f3345;
+  --ok:#57c78a; --ok-soft:#173a29; --no:#ff8a80; --no-soft:#47201d;
+  --ver:#f0b44c; --ver-soft:#3f3015; --na:#9aa8b6; --na-soft:#27313b; color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--font);-webkit-text-size-adjust:100%}
+button,input,textarea,select{font:inherit;color:inherit}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px 64px}
+header.top{padding:28px 0 12px}
+h1{font-size:26px;line-height:1.2;margin:0 0 6px;text-wrap:balance;font-weight:600}
+h2{font-size:18px;margin:0 0 4px;font-weight:600;text-wrap:balance}
+.lead{color:var(--muted);margin:0;max-width:70ch}
+.bar{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 0;margin:0 -16px 16px;padding-left:16px;padding-right:16px}
+.bar-in{max-width:980px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.prog{flex:1 1 180px;min-width:140px}
+.prog small{display:block;color:var(--muted);font-size:12.5px}
+.track{height:8px;background:var(--na-soft);border-radius:4px;overflow:hidden;margin-top:4px}
+.fill{height:100%;background:var(--accent);width:0;transition:width .2s}
+.tools{display:flex;gap:6px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:6px 11px;cursor:pointer;font-size:14px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{color:var(--no)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:16px}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+label.f{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--muted)}
+label.f select{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:7px 9px;color:var(--ink);font-size:15px}
+label.f input{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:7px 9px;color:var(--ink);font-size:15px}
+.legend{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0;font-size:13px;color:var(--muted)}
+.chip{display:inline-block;border-radius:4px;padding:1px 7px;font-size:12.5px;font-weight:500}
+.c-si{background:var(--ok-soft);color:var(--ok)} .c-no{background:var(--no-soft);color:var(--no)}
+.c-na{background:var(--na-soft);color:var(--na)} .c-ver{background:var(--ver-soft);color:var(--ver)}
+.scr{display:grid;gap:0}
+.scr-row{display:grid;grid-template-columns:1fr auto;gap:8px 14px;padding:11px 0;border-top:1px solid var(--line);align-items:center}
+.scr-row:first-child{border-top:0}
+.q{margin:0}
+.ref{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:2px}
+.leads{font-size:12.5px;color:var(--accent);margin-top:2px}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--bg)}
+.seg button{border:0;border-right:1px solid var(--line);background:transparent;padding:6px 11px;cursor:pointer;font-size:13.5px;min-width:52px}
+.seg button:last-child{border-right:0}
+.seg button:hover{background:var(--na-soft)}
+.seg button[aria-pressed="true"].b-si{background:var(--ok);color:#fff}
+.seg button[aria-pressed="true"].b-no{background:var(--no);color:#fff}
+.seg button[aria-pressed="true"].b-na{background:var(--na);color:#fff}
+.seg button[aria-pressed="true"].b-ver{background:var(--ver);color:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .seg button[aria-pressed="true"]{color:#101418}}
+:root[data-theme="dark"] .seg button[aria-pressed="true"]{color:#101418}
+details.sec{background:var(--panel);border:1px solid var(--line);border-radius:8px;margin-bottom:10px}
+details.sec>summary{list-style:none;cursor:pointer;padding:13px 16px;display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::before{content:"";}
+.s-title{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.s-title b{font-weight:600;font-size:16px}
+.s-t{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.s-stat{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted);flex-wrap:wrap;justify-content:flex-end}
+.mini{width:70px;height:6px;background:var(--na-soft);border-radius:3px;overflow:hidden}
+.mini i{display:block;height:100%;background:var(--accent)}
+details.sec.off{background:transparent;border-style:dashed}
+details.sec.off:not(.forced)>summary .s-title b{color:var(--muted);text-decoration:line-through;text-decoration-thickness:1px}
+.body{padding:0 16px 14px}
+.note-sec{font-size:13.5px;color:var(--muted);margin:0 0 8px}
+.off-msg{display:none;background:var(--na-soft);border-radius:6px;padding:9px 11px;font-size:14px;margin-bottom:8px}
+details.sec.off:not(.forced) .off-msg{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+details.sec.off:not(.forced) .items,details.sec.off:not(.forced) .all-na{display:none}
+.item{padding:11px 0;border-top:1px solid var(--line);display:grid;gap:7px}
+.item-top{display:grid;grid-template-columns:1fr auto;gap:8px 14px;align-items:start}
+.doc{font-size:12.5px;color:var(--muted)}
+.doc::before{content:"Richiedere: ";font-weight:500}
+.item input.note{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:6px 9px;font-size:14px}
+.sec-tools{display:flex;gap:6px;margin-top:8px}
+.prio{display:none;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center;padding:8px 10px;border-radius:6px;background:var(--no-soft)}
+.prio.on{display:grid}
+.prio label{font-size:12.5px;color:var(--muted)}
+.prio .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.prio select{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:4px 6px;font-size:13.5px;max-width:100%}
+.rinfo{font-size:13px;font-weight:500}
+.seg button[aria-pressed="true"].b-imm{background:var(--no);color:#fff}
+.seg button[aria-pressed="true"].b-alta{background:var(--ver);color:#fff}
+.seg button[aria-pressed="true"].b-media{background:var(--accent);color:#fff}
+.seg button[aria-pressed="true"].b-bassa{background:var(--na);color:#fff}
+.noterow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.noterow .note{flex:1 1 180px;min-width:0}
+.mbtns{display:flex;gap:4px;flex-shrink:0}
+.btn.sm{padding:4px 9px;font-size:13px}
+.btn.rec{background:var(--no);color:#fff;border-color:var(--no)}
+.mlist{display:flex;gap:10px;flex-wrap:wrap}
+.mlist:empty{display:none}
+.mitem{display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap}
+.mitem audio{height:34px;max-width:240px}
+img.thumb{width:84px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--line);cursor:zoom-in}
+img.thumb.big{width:min(100%,520px);height:auto;object-fit:contain;cursor:zoom-out}
+.c-imm{background:var(--no-soft);color:var(--no);outline:1px solid var(--no)}
+.c-alta{background:var(--ver-soft);color:var(--ver)}
+.c-media{background:var(--accent-soft);color:var(--accent)}
+.c-bassa{background:var(--na-soft);color:var(--na)}
+.sum h2{margin-bottom:10px}
+.cnt{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.cnt div{border-radius:8px;padding:8px 14px;min-width:96px}
+.cnt b{display:block;font-size:24px;line-height:1.1;font-variant-numeric:tabular-nums}
+.cnt span{font-size:12.5px}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th,table.t td{text-align:left;padding:6px 8px;border-top:1px solid var(--line);vertical-align:top}
+table.t th{font-size:12.5px;color:var(--muted);font-weight:500;border-top:0}
+td.n{font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto}
+ul.flat{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+ul.flat li{border-left:3px solid var(--line);padding:2px 0 2px 10px}
+ul.flat li.no{border-color:var(--no)} ul.flat li.ver{border-color:var(--ver)}
+ul.flat .sn{font-size:12.5px;color:var(--muted)}
+.foot{font-size:13px;color:var(--muted);max-width:75ch}
+.msg{font-size:13.5px;color:var(--muted);align-self:center}
+@media (max-width:560px){.scr-row,.item-top{grid-template-columns:1fr}.seg{justify-self:start}.s-stat{justify-content:flex-start}}
+@media (prefers-reduced-motion:reduce){.fill{transition:none}}
+.insp-h{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline}
+.insp-h b{font-size:16px}
+.upd{position:fixed;left:12px;right:12px;bottom:12px;z-index:20;background:var(--accent);color:var(--accent-ink);border-radius:8px;padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.upd .btn{color:var(--ink)}
+@media print{.bar,.upd{display:none!important}}
+
+</style>
+</head>
+<body>
+<div id="vHome" hidden><div class="wrap">
+<header class="top">
+  <h1>Sopralluoghi RSPP</h1>
+  <p class="lead">Checklist di primo sopralluogo sul D.Lgs. 81/2008, con foto e note vocali per ogni voce. Funziona anche senza rete.</p>
+</header>
+<section class="card" aria-labelledby="h-new">
+  <h2 id="h-new">Nuovo sopralluogo</h2>
+  <div class="meta">
+    <label class="f" for="hAz">Azienda<input id="hAz" type="text" autocomplete="off"></label>
+    <label class="f" for="hSe">Sede (indirizzo)<input id="hSe" type="text" autocomplete="off"></label>
+  </div>
+  <div class="tools" style="margin-top:12px">
+    <button class="btn primary" id="hNew" type="button">Inizia il sopralluogo</button>
+    <label class="btn" style="cursor:pointer">Importa backup<input type="file" id="hImp" accept=".zip,.json,application/zip,application/json" hidden></label>
+    <button class="btn" id="hInstall" type="button" hidden>Installa l'app</button>
+    <span class="msg" id="hMsg" role="status"></span>
+  </div>
+</section>
+<h2 style="margin:22px 0 10px">Sopralluoghi su questo telefono</h2>
+<div id="hList"></div>
+<p class="foot" id="hStore"></p>
+</div></div>
+<div id="vReport" hidden></div>
+
+<div id="vCheck" hidden><div class="wrap">
+<header class="top">
+  <h1>Checklist primo sopralluogo RSPP</h1>
+  <p class="lead">Domande per verificare, sede per sede, quali aspetti del D.Lgs. 81/2008 si applicano e quali no, e come stanno quelli che si applicano. Parti dallo screening: i titoli esclusi si chiudono da soli.</p>
+</header>
+
+<div class="bar"><div class="bar-in">
+  <div class="prog"><small id="progText">0 di 0 voci compilate</small><div class="track"><div class="fill" id="progFill"></div></div></div>
+  <div class="tools">
+    <button class="btn" id="btnBack" type="button">‹ Elenco</button>
+    <button class="btn" id="btnOpen">Apri tutte</button>
+    <button class="btn" id="btnClose">Chiudi tutte</button>
+    <button class="btn" id="btnSum" type="button">Riepilogo</button>
+  </div>
+</div></div>
+
+<section class="card" aria-labelledby="h-sede">
+  <h2 id="h-sede">Dati del sopralluogo</h2>
+  <div class="meta" id="meta"></div>
+  <div class="legend">
+    <span><span class="chip c-si">Sì</span> presente e in regola</span>
+    <span><span class="chip c-no">No</span> assente o non conforme</span>
+    <span><span class="chip c-na">N.A.</span> non applicabile a questa sede</span>
+    <span><span class="chip c-ver">Da verificare</span> chiedere documento o approfondire</span>
+    <span><b>Foto</b> apre la fotocamera. <b>Registra</b> avvia una nota vocale (se il browser non lo consente apre il registratore del telefono). <b>Audio</b> allega un file già registrato.</span>
+    <span><b>Priorità</b> sulle voci No: Immediata, Alta, Media, Bassa. Si sceglie a mano o si ricava da probabilità × conseguenza (matrice del DVR: R da 1 a 100).</span>
+  </div>
+</section>
+
+<section class="card" aria-labelledby="h-scr">
+  <h2 id="h-scr">1. Screening di applicabilità</h2>
+  <p class="note-sec">Rispondi con Sì o No. Se tutte le domande collegate a un titolo hanno risposta No, quel titolo risulta non applicabile e le sue voci vengono escluse dal conteggio. Con "Da stabilire" resta attivo.</p>
+  <div class="scr" id="scr"></div>
+</section>
+
+<h2 style="margin:22px 0 10px">2. Verifica per aspetto</h2>
+<div id="secs"></div>
+
+<section class="card sum" id="riepilogo" aria-labelledby="h-sum" style="margin-top:22px">
+  <h2 id="h-sum">3. Riepilogo del sopralluogo</h2>
+  <div class="cnt" id="cnt"></div>
+  <div class="tools" style="margin-bottom:14px">
+    <button class="btn primary" id="btnZipShare" type="button">Backup ZIP: condividi</button>
+    <button class="btn" id="btnZip" type="button">Scarica backup ZIP</button>
+    <button class="btn" id="btnRep" type="button">Report con foto</button>
+    <button class="btn" id="btnXlsx" type="button">Excel</button>
+    <button class="btn" id="btnCopy" type="button">Copia criticità</button>
+    <button class="btn danger" id="btnReset" type="button">Elimina sopralluogo</button>
+    <span id="shareSlot"></span>
+    <span class="msg" id="msg" role="status"></span>
+  </div>
+  <p class="note-sec" id="mediaTot"></p>
+  <label class="f" style="max-width:300px;margin-bottom:14px">Qualità delle foto (vale per le nuove foto)
+    <select id="photoQ">
+      <option value="low">Leggera: 800 px, file piccolo</option>
+      <option value="mid">Media: 1024 px</option>
+      <option value="high">Alta: 1600 px, file grande</option>
+    </select>
+  </label>
+  <h2 style="font-size:15px">Avanzamento per aspetto</h2>
+  <div class="scroll"><table class="t" id="tbl"></table></div>
+  <h2 style="font-size:15px;margin-top:18px">Criticità (esito No)</h2>
+  <ul class="flat" id="listNo"></ul>
+  <h2 style="font-size:15px;margin-top:18px">Da verificare</h2>
+  <ul class="flat" id="listVer"></ul>
+  <h2 style="font-size:15px;margin-top:18px">Aspetti non applicabili a questa sede</h2>
+  <ul class="flat" id="listOff"></ul>
+</section>
+
+<p class="foot">I riferimenti sono indicati a livello di articolo, allegato e atti collegati (accordi Stato-Regioni, decreti attuativi). Commi, lettere e atti richiamati vanno confermati sul testo vigente prima di citarli in documenti formali: il decreto è stato modificato più volte negli ultimi anni (per esempio artt. 15, 27, 37 e 41). Per le decisioni operative e legali farsi confermare il caso concreto dal RSPP o da un consulente.</p>
+</div></div>
+<script src="lib/xlsx.full.min.js" defer></script>
+<script defer>
+"use strict";
+window.addEventListener("DOMContentLoaded",()=>{
+/* ---------- DATI ---------- */
+/* ---------- DATI ---------- */
+const META=[["azienda","Azienda"],["sede","Sede (indirizzo)"],["data","Data sopralluogo","date"],["rilevatore","Rilevatore (RSPP)"],["referente","Referente aziendale"],["lavoratori","N. lavoratori"],["attivita","Attività / ATECO"]];
+
+const SCREEN=[
+["att","Ci sono macchine, attrezzature, impianti o mezzi di sollevamento usati dai lavoratori?","Titolo III, Capo I"],
+["vdt","Ci sono lavoratori al videoterminale in modo sistematico o abituale per almeno 20 ore settimanali, dedotte le pause?","art. 173, c. 1, lett. c"],
+["mmc","Si movimentano a mano carichi o pazienti, si spinge o si traina, o ci sono movimenti ripetuti degli arti superiori?","art. 167; All. XXXIII"],
+["rum","Ci sono macchine o lavorazioni rumorose (si fatica a parlare a un metro di distanza)?","art. 181, 190"],
+["vib","Si usano utensili vibranti o si guidano mezzi e macchine che trasmettono vibrazioni?","art. 181, 202"],
+["em","Ci sono sorgenti significative di campi elettromagnetici (risonanza magnetica, diatermia, saldatrici, forni a induzione, impianti radio)?","art. 181, 209"],
+["roa","Ci sono sorgenti di radiazioni ottiche artificiali (laser, lampade UV, saldatura, forni, sorgenti infrarosse)?","art. 181, 216"],
+["mic","Si lavora con caldo o freddo severi (cucine, lavanderie, celle frigorifere, attività all'aperto)?","art. 180-182; All. IV"],
+["ion","Ci sono radiazioni ionizzanti (raggi X, medicina nucleare, radioterapia, sorgenti radioattive)?","D.Lgs. 101/2020 (fuori dal Titolo VIII)"],
+["chim","Si usano o si producono agenti chimici (anche detergenti, disinfettanti, solventi, toner, gas)?","art. 221-223"],
+["cmr","Si usano o si generano agenti cancerogeni, mutageni o reprotossici (anche in laboratorio)?","art. 233-236"],
+["amia","Ci sono o possono esserci materiali contenenti amianto (edifici, coperture, coibentazioni, tubazioni)?","art. 246-248"],
+["bio","C'è possibile esposizione ad agenti biologici (sanità, laboratori, rifiuti, animali, agricoltura, impianti idrici)?","art. 266-271"],
+["atex","Possono formarsi atmosfere esplosive (gas, vapori, nebbie o polveri infiammabili)?","art. 287-290"],
+["app","Operano in sede imprese appaltatrici, lavoratori autonomi o fornitori di servizi (pulizie, manutenzioni, ristorazione, vigilanza)?","art. 26"],
+["int","Nella sede lavorano più datori di lavoro o più attività si svolgono negli stessi spazi o in sovrapposizione (altri inquilini, appaltatori, reparti, lavori in corso, traffico di mezzi e pedoni)?","art. 26, c. 2-3"],
+["cant","Sono in corso o previsti lavori edili o di ingegneria civile, anche di manutenzione (All. X)?","Titolo IV"],
+["quota","Si lavora a più di 2 metri da un piano stabile (coperture, scale, ponteggi, piattaforme, soppalchi)?","art. 107"],
+["conf","Esistono spazi confinati o sospetti di inquinamento (cisterne, vasche, pozzetti, cunicoli, silos)?","art. 66; DPR 177/2011"],
+["off","Si usano utensili manuali o portatili, macchine d'officina o apparecchi di saldatura?","art. 71; art. 223"],
+["sic","Ci sono front office, cassa o valori, utenza difficile, o la sede è in un contesto con rischio di rapina, aggressione o disordini?","art. 28, c. 1"]
+];
+
+const SECS=[
+{id:"org",t:"Titolo I",name:"Organizzazione della prevenzione",items:[
+["Sono individuati per iscritto datore di lavoro, dirigenti e preposti (anche di fatto) per ogni sede e reparto?","art. 2, c. 1, lett. b, d, e; art. 299","Organigramma, atti di nomina"],
+["Se esistono deleghe di funzioni, sono scritte, con data certa, accettate, con requisiti professionali e autonomia di spesa?","art. 16","Atti di delega"],
+["L'RSPP è designato con atto scritto e il suo nominativo è noto ai lavoratori?","art. 17, c. 1, lett. b; art. 36","Lettera di incarico"],
+["L'RSPP (e gli eventuali ASPP) hanno titoli, formazione e aggiornamento richiesti?","art. 32","Titolo di studio, attestati"],
+["Se il datore di lavoro svolge direttamente i compiti di RSPP, ne ricorrono le condizioni e ha la formazione prevista?","art. 34; All. II"],
+["La sede rientra nei casi in cui il servizio di prevenzione deve essere interno all'azienda?","art. 31, c. 6"],
+["Il datore di lavoro ha fornito a SPP e medico competente le informazioni su rischi, organizzazione del lavoro, infortuni e malattie professionali?","art. 18, c. 2"],
+["Esiste il RLS (eletto o designato) o è garantito il RLS territoriale, con nominativo comunicato all'INAIL?","art. 47-48; art. 18, c. 1, lett. aa","Verbale di elezione"],
+["Il RLS è consultato su valutazione dei rischi, designazioni e formazione, e ha accesso a DVR e luoghi di lavoro?","art. 50"],
+["Si tiene la riunione periodica annuale (obbligatoria oltre i 15 lavoratori) e ne esiste il verbale?","art. 35","Verbali degli ultimi anni"],
+["Preposti e dirigenti svolgono la vigilanza sull'applicazione di norme e procedure?","art. 18, c. 3-bis; art. 19"],
+["Sono individuate le mansioni che richiedono capacità professionale, esperienza e formazione specifiche?","art. 28, c. 2, lett. f; art. 18, c. 1, lett. c"],
+["Esistono procedure e istruzioni operative di sicurezza per le attività critiche?","art. 28, c. 2, lett. d"],
+["È adottato un modello organizzativo (art. 30, D.Lgs. 231/2001) o un sistema di gestione (per esempio ISO 45001)?","art. 30","Facoltativo: N.A. se non adottato"]
+]},
+{id:"dvr",t:"Titolo I",name:"Valutazione dei rischi e DVR",items:[
+["Esiste un DVR riferito alla sede e a tutte le attività svolte?","art. 17, c. 1, lett. a; art. 28","DVR e allegati"],
+["Il DVR ha data certa o è firmato da datore di lavoro, RSPP, RLS e medico competente?","art. 28, c. 2"],
+["Contiene criteri di valutazione, misure di prevenzione e DPI, programma di miglioramento, ruoli, mansioni a rischio specifico?","art. 28, c. 2, lett. a-f"],
+["Considera i rischi particolari: stress lavoro-correlato, differenze di genere, età, provenienza da altri Paesi, tipologia contrattuale?","art. 28, c. 1"],
+["Lo stress lavoro-correlato è valutato con metodo riconosciuto (indicazioni della Commissione consultiva del 18/11/2010)?","art. 28, c. 1"],
+["È stato rielaborato dopo modifiche produttive o organizzative, infortuni significativi o esiti della sorveglianza sanitaria?","art. 29, c. 3"],
+["Reparti, mansioni, gruppi omogenei ed elenco dei lavoratori corrispondono a quanto osservato in sede?","art. 28"],
+["Le valutazioni specifiche richieste dai rischi presenti sono allegate o richiamate (rumore, chimico, MMC, VDT, incendio, ATEX)?","Titoli V-XI"],
+["Alla valutazione hanno partecipato RLS e medico competente?","art. 29, c. 1-2"],
+["La documentazione è custodita presso l'unità produttiva?","art. 29, c. 4"],
+["Le novità introdotte dopo l'ultimo DVR (attrezzature, sostanze, lavorazioni, locali) sono state valutate?","art. 29, c. 3"],
+["Il DVR tiene conto della presenza di terzi (visitatori, utenti, pazienti, fornitori)?","art. 28, c. 1; art. 26"]
+]},
+{id:"ms",t:"Titolo I",name:"Sorveglianza sanitaria e medico competente",items:[
+["Il medico competente è nominato, con i titoli prescritti, nei casi in cui la sorveglianza sanitaria è obbligatoria?","art. 18, c. 1, lett. a; art. 38","Nomina, titoli"],
+["Elenco dei lavoratori in sorveglianza e protocollo sanitario sono coerenti con il DVR?","art. 25, c. 1, lett. b; art. 41, c. 1","Protocollo sanitario"],
+["I giudizi di idoneità sono in corso di validità per tutti, con copia agli interessati e scadenziario delle visite?","art. 41, c. 6","Scadenziario visite"],
+["Prescrizioni e limitazioni indicate nei giudizi sono rispettate?","art. 41, c. 6"],
+["Sono svolte visite preventive, periodiche, per cambio mansione, a richiesta e dopo assenza per malattia superiore a 60 giorni?","art. 41, c. 2"],
+["Sono previsti gli accertamenti per mansioni a rischio per alcol e sostanze e la visita per sospetto uso?","art. 41, c. 2, lett. e-quater; c. 4","N.A. se non ci sono mansioni a rischio"],
+["Il medico competente visita gli ambienti di lavoro almeno una volta l'anno (o con altra periodicità motivata)?","art. 25, c. 1, lett. l","Verbali di sopralluogo"],
+["Cartelle sanitarie e di rischio sono istituite e custodite con il vincolo del segreto professionale?","art. 25, c. 1, lett. c; art. 53"],
+["I dati sanitari aggregati sono trasmessi entro il primo trimestre dell'anno successivo?","art. 40"],
+["Il medico competente collabora alla valutazione dei rischi e partecipa alla riunione periodica?","art. 25; art. 35"],
+["I lavoratori sono informati sul significato e sugli esiti della sorveglianza sanitaria?","art. 25"]
+]},
+{id:"form",t:"Titolo I",name:"Informazione, formazione e addestramento",items:[
+["Tutti i lavoratori hanno formazione generale e specifica adeguata al rischio dell'attività e della mansione?","art. 37, c. 1-3; Accordo Stato-Regioni","Attestati, elenco formazione"],
+["L'aggiornamento periodico (quinquennale) è svolto e documentato?","art. 37; Accordo Stato-Regioni"],
+["La formazione è fatta prima dell'assegnazione al lavoro o al cambio di mansione?","art. 37, c. 4"],
+["I preposti sono formati e aggiornati?","art. 37, c. 7"],
+["I dirigenti sono formati e aggiornati?","art. 37, c. 7"],
+["Il datore di lavoro ha la formazione prevista?","art. 34; art. 37, c. 7; Accordo Stato-Regioni"],
+["Il RLS ha la formazione iniziale (32 ore) e l'aggiornamento annuale?","art. 37, c. 10-11"],
+["Gli addetti antincendio e primo soccorso sono formati e aggiornati?","art. 37, c. 9"],
+["L'addestramento è documentato per DPI di terza categoria, protezione dell'udito e attrezzature che lo richiedono?","art. 77, c. 5; art. 73, c. 4-5"],
+["Ai lavoratori sono comunicati nominativi di RSPP, medico competente, addetti emergenza, rischi specifici e procedure?","art. 36"],
+["La formazione è comprensibile per i lavoratori stranieri (lingua, mediazione)?","art. 37, c. 13"],
+["La formazione si svolge in orario di lavoro e senza oneri per i lavoratori?","art. 37, c. 12"],
+["Gli attestati sono rilasciati da soggetti formatori abilitati e sono registrati (registro dell'addestramento, fascicolo del lavoratore)?","art. 37, c. 5 e c. 14"],
+["I lavoratori equiparati (somministrati, tirocinanti, stagisti, volontari) sono formati?","art. 2, c. 1, lett. a; art. 3"]
+]},
+{id:"emerg",t:"Titolo I",name:"Emergenze, antincendio e primo soccorso",items:[
+["La valutazione del rischio incendio è documentata, con livello di rischio (basso, medio, alto)?","art. 46; DM 3/9/2021","Valutazione rischio incendio"],
+["Se l'attività è soggetta a controllo dei Vigili del fuoco: SCIA o CPI valida e rinnovi periodici in regola?","DPR 151/2011; art. 46","N.A. se non soggetta"],
+["Il piano di emergenza ed evacuazione è presente, aggiornato, con planimetrie?","art. 43; DM 2/9/2021; DM 3/9/2021","Piano di emergenza"],
+["Gli addetti antincendio, evacuazione e primo soccorso sono designati in numero adeguato, con sostituti?","art. 18, c. 1, lett. b; art. 43; DM 388/2003","Designazioni"],
+["Si fanno esercitazioni di evacuazione periodiche (almeno annuali) con verbale?","DM 2/9/2021","Verbali prove"],
+["Vie di esodo e uscite sono libere, segnalate, con porte apribili e larghezze adeguate?","art. 46; All. IV"],
+["L'illuminazione di sicurezza (emergenza) copre vie di esodo, uscite, scale e locali senza luce naturale, con autonomia e intensità adeguate?","All. IV; DM 3/9/2021; UNI EN 1838","Progetto o dichiarazione impianto"],
+["Dove un guasto all'illuminazione ordinaria crea pericolo (laboratori, locali tecnici, sale operatorie, reparti), c'è illuminazione sussidiaria o di riserva adeguata?","All. IV (illuminazione di sicurezza)","N.A. se nessun locale è a rischio"],
+["Le lampade di emergenza sono provate periodicamente (prova funzionale, autonomia) e le prove sono registrate?","DM 1/9/2021; CEI EN 50172","Registro controlli, rapporti di prova"],
+["Per apparecchiature e aree critiche (sanità, laboratori, sistemi di sicurezza) c'è gruppo di continuità o generatore, con prove periodiche?","art. 64; art. 80-86","N.A. se non presenti"],
+["La segnaletica di sicurezza (uscite, percorsi, presidi) è presente, visibile e illuminata?","All. IV; Titolo V"],
+["Estintori, idranti o naspi, rilevazione e allarme sono presenti, segnalati e accessibili?","art. 46; DM 3/9/2021"],
+["I presidi e gli impianti antincendio hanno controlli e manutenzione periodici con registro?","DM 1/9/2021","Registro controlli antincendio"],
+["Depositi di infiammabili, bombole, locali tecnici e centrali termiche sono gestiti in modo conforme?","art. 46; DM 3/9/2021"],
+["È definita la procedura per pericolo grave e immediato e per l'allontanamento dal posto di lavoro?","art. 43, c. 1; art. 44"],
+["Il piano considera la gestione di pubblico, pazienti, visitatori e persone con disabilità?","art. 43"],
+["Sono definiti i rapporti con i servizi pubblici di emergenza e i numeri utili sono affissi?","art. 43, c. 1, lett. a"],
+["Il primo soccorso è organizzato: gruppo (A, B o C) definito, cassetta o pacchetto di medicazione, mezzo di comunicazione?","art. 45; DM 388/2003"],
+["Se è presente un defibrillatore: operatori formati, manutenzione, segnalazione?","art. 45; L. 116/2021","N.A. se non presente"],
+["Sono previste emergenze specifiche (sversamenti, gas, allagamento, black-out, sisma, intrusione)?","art. 43, c. 1"]
+]},
+{id:"nat",t:"Art. 28 e art. 43",name:"Eventi naturali e calamità",items:[
+["Il rischio sismico della sede è considerato (zona sismica, vulnerabilità dell'edificio, arredi e scaffali fissati)?","art. 28; art. 43"],
+["Rischio di alluvione e allagamento valutato (ubicazione, seminterrati, piano di protezione civile comunale), con misure previste?","art. 28; art. 43"],
+["Esiste una procedura per le allerte meteo (vento, neve, ghiaccio, temporali, ondate di calore) con chi decide e come si informano i lavoratori?","art. 28; art. 43"],
+["Vie di fuga, piazzali e coperture tengono conto di neve, ghiaccio e vento forte?","art. 63; All. IV"],
+["Il piano di emergenza comprende sisma e allagamento, con prove di evacuazione dedicate?","art. 43; DM 2/9/2021"]
+]},
+{id:"amb",t:"Titolo II",name:"Luoghi di lavoro e ambienti",note:"Questa sezione è un controllo di primo sopralluogo. Il dettaglio ambiente per ambiente si fa con lo strumento VR_AMBIENTI (Allegato IV).",items:[
+["Destinazione d'uso e agibilità dell'edificio sono coerenti con l'attività e le planimetrie sono aggiornate?","art. 63; All. IV","Agibilità, planimetrie"],
+["Stabilità e solidità delle strutture sono verificate, con carichi massimi dei solai indicati dove serve?","art. 63; All. IV, punto 1"],
+["Altezza, superficie e cubatura dei locali sono adeguate al numero di lavoratori?","All. IV, punto 1"],
+["Pavimenti, pareti, soffitti, finestre e lucernari sono in buono stato, puliti e sicuri?","All. IV, punto 1"],
+["Vie di circolazione, scale, parapetti e aperture nel suolo sono sicuri, con percorsi pedonali e veicolari separati?","art. 63; All. IV"],
+["Illuminazione naturale e artificiale adeguata ai compiti svolti?","All. IV"],
+["Temperatura, ventilazione, ricambio d'aria e umidità adeguati?","All. IV"],
+["Servizi igienici, spogliatoi, docce, locale ristoro e riposo sono adeguati, in numero sufficiente e distinti per genere dove richiesto?","All. IV"],
+["L'acqua potabile è disponibile in quantità sufficiente e con punti di erogazione adeguati ai lavoratori?","art. 63; All. IV; D.Lgs. 18/2023"],
+["La fonte è controllata (acquedotto, pozzo o serbatoio) con analisi periodiche, e serbatoi e autoclavi sono puliti e manutenuti?","D.Lgs. 18/2023","Analisi acqua, registro pulizie serbatoi"],
+["Fontanelle, distributori e erogatori hanno manutenzione, sanificazione e cambio filtri registrati?","D.Lgs. 18/2023; art. 64","Registro manutenzioni"],
+["I punti con acqua non potabile (industriale, antincendio, irrigazione) sono segnalati e non collegati alla rete potabile?","art. 63; All. IV","N.A. se non presenti"],
+["Per i locali sotterranei o seminterrati usati per lavorare: rispettati i requisiti o ottenuta la deroga?","art. 65","N.A. se non presenti"],
+["I luoghi sono accessibili a lavoratori con disabilità?","art. 63, c. 2"],
+["Aree esterne, parcheggi, viabilità interna e aree di carico e scarico sono sicure?","art. 63; All. IV"],
+["Locali, impianti e dispositivi hanno pulizia e manutenzione periodica?","art. 64, c. 1"],
+["Locali tecnici, depositi e archivi hanno accesso controllato, portate dei ripiani e carico d'incendio sotto controllo?","All. IV"],
+["Porte e portoni (anche scorrevoli, automatici o a vetri) sono integri, con vetri di sicurezza, apertura corretta, dispositivi anti-schiacciamento e manutenzione periodica?","All. IV (porte e portoni); art. 64","Registro manutenzioni porte automatiche"],
+["Luoghi di lavoro esterni e posti di passaggio (piazzali, tettoie, aree di sosta) hanno fondo, drenaggio, illuminazione e protezioni dal traffico adeguati?","art. 63; All. IV"],
+["Edificio in condominio o in locazione: sono chiariti con proprietario o amministratore i compiti su parti comuni, impianti e manutenzioni che incidono sulla sicurezza?","art. 26; art. 64","Contratto di locazione, regolamento condominiale"],
+["Rifiuti: raccolta differenziata e deposito temporaneo sono organizzati con contenitori idonei, e i rifiuti speciali sono conferiti a ditte autorizzate?","D.Lgs. 152/2006","Formulari, registri"],
+["Il servizio di pulizia ha procedure e orari compatibili con le attività, schede dei prodotti e coordinamento con l'impresa incaricata?","art. 26; art. 223","DUVRI, schede dei prodotti"],
+["Infestanti (roditori, insetti, volatili): c'è controllo e disinfestazione periodica con registro degli interventi e prodotti autorizzati?","art. 64; art. 271","Contratto di disinfestazione, registro interventi"],
+["Se la sede è nuova o ristrutturata: fatta la notifica all'organo di vigilanza?","art. 67","N.A. se non nuova o ristrutturata"]
+]},
+{id:"stoc",t:"Titolo II e art. 64",name:"Magazzini, archivi e scaffalature",items:[
+["Ogni scaffalatura ha la targa di portata (per ripiano e per campata) visibile, e la portata è rispettata?","art. 63; All. IV; UNI EN 15635","Targhe, schede tecniche"],
+["Montanti e traverse sono integri, senza urti o deformazioni, con ancoraggi a pavimento o a parete e protezioni dei montanti?","art. 63; UNI EN 15635"],
+["Esiste un'ispezione periodica documentata (almeno annuale) da persona competente, con registro dei danni e delle azioni?","UNI EN 15635","Registro ispezioni"],
+["I carichi sono ben disposti: pesi maggiori in basso, pallet integri, niente sporgenze nelle corsie, distanze dagli impianti antincendio e dall'illuminazione?","art. 63; DM 3/9/2021"],
+["Le corsie hanno larghezza adeguata ai carrelli usati e sono libere?","All. IV; art. 71"],
+["Per raggiungere i ripiani alti si usano scale o piattaforme idonee, senza arrampicarsi sulle scaffalature?","art. 113; art. 111"],
+["Archivi e scaffali in uffici o soppalchi: fissati a parete contro il ribaltamento, con portata del solaio verificata?","art. 63; All. IV","N.A. se non presenti"],
+["Il carico d'incendio dei depositi è controllato e compatibile con compartimentazione e presidi?","art. 46; DM 3/9/2021"]
+]},
+{id:"el",t:"Titolo III, Capo III",name:"Impianti elettrici e di terra",items:[
+["Sono disponibili dichiarazione di conformità o di rispondenza dell'impianto elettrico?","art. 80; DM 37/2008","Dichiarazioni di conformità"],
+["L'impianto di terra ha verifiche periodiche con la periodicità prevista e verbali di organismo abilitato?","art. 86; DPR 462/2001","Verbali di verifica"],
+["È valutato il rischio di fulminazione e, se necessario, c'è l'impianto di protezione con verifiche?","art. 84; DPR 462/2001"],
+["Quadri e prese sono protetti (differenziali, magnetotermici), senza manomissioni o cavi scoperti, con prolunghe e multiprese usate correttamente?","art. 80-81"],
+["La manutenzione periodica degli impianti (inclusi UPS, gruppi elettrogeni, fotovoltaico) è documentata?","art. 86"],
+["I lavori elettrici sono affidati a persone qualificate (PES, PAV, PEI) con formazione specifica?","art. 82-83; CEI 11-27","N.A. se non si fanno lavori elettrici"]
+]},
+{id:"imp",t:"Titolo II e III",name:"Impianti tecnici e apparecchi di uso comune",items:[
+["Impianti di riscaldamento, climatizzazione e refrigerazione: libretto di impianto, manutenzione periodica e controlli di efficienza in regola?","DPR 74/2013; art. 64","Libretto di impianto, rapporti di controllo"],
+["Impianti con gas fluorurati: registro, controlli di tenuta e operatori certificati?","Reg. UE 2024/573; DPR 146/2018","N.A. se non presenti"],
+["L'impianto di distribuzione e uso del gas ha dichiarazione di conformità, verifica di tenuta e manutenzione (centrale termica, cucine)?","DM 37/2008; UNI 7129","N.A. se non presente"],
+["Impianti di aspirazione, ventilazione e trattamento aria: filtri, canali e unità sono puliti e manutenuti con registro?","art. 64; art. 224-225","Registro manutenzioni"],
+["Impianti idrici e sanitari: manutenzione, controllo della temperatura e prevenzione dei ristagni (legionella) sono documentati?","art. 271; Linee guida Legionella 2015"],
+["Impianti elettronici, antenne e apparati di rete sono installati e protetti correttamente, in locali dedicati e con accesso controllato?","art. 80-81; art. 209"],
+["Apparecchi termici trasportabili (termoventilatori, stufe) e gruppi elettrogeni portatili: uso consentito, conformità e ventilazione?","art. 71; art. 46","N.A. se non presenti"],
+["Elettrodomestici dell'area ristoro (frigoriferi, microonde, bollitori, macchine del caffè) sono conformi, integri e manutenuti?","art. 80-81; art. 71"],
+["Apparecchiature informatiche e d'ufficio (stampanti, fotocopiatrici, prese, cavi, UPS) sono integre, ben collocate, senza sovraccarico delle prese?","art. 80-81; art. 172"]
+]},
+{id:"att",dep:["att"],t:"Titolo III, Capo I",name:"Attrezzature di lavoro",items:[
+["Esiste il censimento delle attrezzature, con marcatura CE, dichiarazione CE e manuali d'uso e manutenzione?","art. 70","Elenco attrezzature, manuali"],
+["Le attrezzature anteriori alla marcatura CE rispettano i requisiti dell'Allegato V?","art. 70, c. 2; All. V","N.A. se non presenti"],
+["Per le attrezzature dell'Allegato VII: elenco, scadenze delle verifiche periodiche e libretti sono in regola?","art. 71, c. 11; All. VII","Verbali di verifica periodica"],
+["Controlli e manutenzione sono documentati (registro di controllo dove previsto)?","art. 71"],
+["Gli operatori sono abilitati dove richiesto (piattaforme, carrelli elevatori, gru, escavatori, trattori)?","art. 73, c. 5; Accordo Stato-Regioni 22/2/2012","Attestati di abilitazione"],
+["Istruzioni d'uso in italiano, procedure e formazione specifica sono disponibili agli operatori?","art. 73"],
+["Protezioni, ripari, arresti di emergenza e comandi sono integri e non esclusi?","art. 70-71; All. V"],
+["Le attrezzature a noleggio o in comodato sono conformi e accompagnate dalla dichiarazione dei requisiti?","art. 72","N.A. se non presenti"],
+["Apparecchi di sollevamento (gru, paranchi, funi, ganci, brache): portata indicata, verifiche e controllo delle funi?","art. 71; All. VI; All. VII","N.A. se non presenti"],
+["Carrelli e mezzi di movimentazione: percorsi, segnaletica, cinture, avvisatori e manutenzione sono in ordine?","art. 71; All. VI","N.A. se non presenti"],
+["Apparecchi a pressione (compressori, caldaie, autoclavi, serbatoi aria) hanno verifiche e controlli in regola?","art. 71; DM 329/2004","N.A. se non presenti"],
+["Ascensori e montacarichi hanno manutenzione e verifiche periodiche in regola?","DPR 162/1999","N.A. se non presenti"],
+["Manutenzione e pulizia delle macchine avvengono con procedure di blocco delle energie?","art. 71"]
+]},
+{id:"off",dep:["off"],t:"Titolo III, Capo I",name:"Utensili, macchine d'officina e saldatura",items:[
+["Utensili manuali: idonei, integri (manici, taglienti), custoditi in ordine e usati secondo l'impiego?","art. 71; art. 77"],
+["Utensili elettrici portatili: conformi, con isolamento e cavi integri e dispositivi di sicurezza non esclusi?","art. 70-71; art. 80-81"],
+["Macchine d'officina fisse (trapano a colonna, mola, troncatrice): protezioni, schermi, arresto di emergenza e operatori formati?","art. 71; All. V; art. 73"],
+["Saldatura elettrica: aspirazione dei fumi, schermature, DPI e protezione da radiazioni ottiche e rischio elettrico?","art. 223; art. 216; art. 77"],
+["Saldatura a fiamma o a gas: bombole fissate, valvole antiritorno, permesso per lavori a caldo ed estintore a portata?","art. 46; art. 71; DM 3/9/2021"],
+["Fumi di saldatura e polveri: c'è valutazione specifica, anche come agenti cancerogeni dove ricorre?","art. 223; art. 236"]
+]},
+{id:"sca",t:"Titolo III, Capo I",name:"Scale portatili e piccoli lavori in altezza",items:[
+["Le scale portatili sono conformi (UNI EN 131), integre, con piedini e dispositivi di bloccaggio in ordine?","art. 113; All. XX"],
+["Per lavori fino a 2 metri si usano scale o piattaforme adatte, mai sedie o piani di appoggio improvvisati?","art. 113; art. 111"],
+["Chi usa scale e sgabelli è informato e formato, e ci sono regole su chi può usarli e quando?","art. 113; art. 36-37"]
+]},
+{id:"dpi",t:"Titolo III, Capo II",name:"Dispositivi di protezione individuale",items:[
+["I DPI sono individuati per mansione nel DVR in base ai rischi residui?","art. 77, c. 1-4; art. 79"],
+["I DPI sono marcati CE, di categoria corretta, con nota informativa e adatti ai lavoratori?","art. 76"],
+["La consegna è registrata (ricevuta firmata) con taglie, sostituzioni e scadenze gestite?","art. 77","Moduli di consegna"],
+["L'addestramento è fatto per DPI di terza categoria, udito e anticaduta?","art. 77, c. 5"],
+["Manutenzione, pulizia, stoccaggio e controlli periodici (imbracature, filtri, elmetti) sono assicurati?","art. 77"],
+["I lavoratori usano effettivamente i DPI e i preposti vigilano?","art. 75; art. 78"]
+]},
+{id:"seg",t:"Titolo V",name:"Segnaletica di salute e sicurezza",items:[
+["Segnaletica di divieto, avvertimento, prescrizione, salvataggio e antincendio è presente e conforme?","art. 161-163; All. XXIV-XXV"],
+["Sono segnalati ostacoli, vie di circolazione, zone pericolose, recipienti e tubazioni?","art. 163"],
+["Segnali luminosi, acustici, gestuali e verbali sono usati dove necessario?","art. 163"],
+["I lavoratori sono informati e formati sul significato della segnaletica?","art. 164"]
+]},
+{id:"mmc",dep:["mmc"],t:"Titolo VI",name:"Movimentazione manuale dei carichi e sovraccarico biomeccanico",items:[
+["Il sollevamento manuale è valutato con metodo riconosciuto (NIOSH o equivalente)?","art. 168; All. XXXIII; ISO 11228-1"],
+["Spinta e traino sono valutati (per esempio TR ISO 12295, ISO 11228-2)?","art. 168; All. XXXIII","N.A. se non presenti"],
+["I movimenti ripetuti degli arti superiori sono valutati (OCRA o equivalente)?","art. 168; All. XXXIII; ISO 11228-3","N.A. se non presenti"],
+["La movimentazione di pazienti è valutata (MAPO o equivalente) e gli ausili sono disponibili?","art. 168","N.A. se non presenti pazienti"],
+["Sono disponibili ausili meccanici (carrelli, sollevatori, transpallet) e l'organizzazione riduce la movimentazione manuale?","art. 168, c. 1"],
+["Informazione e formazione specifica su MMC e posture sono svolte?","art. 169"],
+["La sorveglianza sanitaria è prevista dove la valutazione lo richiede?","art. 168; art. 41"],
+["Compiti di gestanti e lavoratori con limitazioni sono compatibili con la valutazione?","art. 168; D.Lgs. 151/2001"]
+]},
+{id:"vdt",dep:["vdt"],t:"Titolo VII",name:"Attrezzature munite di videoterminali",items:[
+["Sono individuati i videoterminalisti (almeno 20 ore settimanali) e valutate le postazioni (vista, postura, affaticamento mentale)?","art. 173-174","Elenco, valutazione postazioni"],
+["Le postazioni sono conformi: schermo, tastiera, sedia, piano di lavoro, spazio, illuminazione senza riflessi?","art. 172; All. XXXIV"],
+["Sono garantite pause o cambi di attività (15 minuti ogni 120 di applicazione continuativa)?","art. 175"],
+["La sorveglianza sanitaria è eseguita con la periodicità prevista?","art. 176"],
+["Informazione e formazione specifiche sono svolte?","art. 177"],
+["Per portatili, tablet e smartphone usati a lungo ci sono accessori adeguati (supporto, tastiera e mouse esterni)?","art. 172-174"]
+]},
+{id:"rum",dep:["rum"],t:"Titolo VIII, Capo II",name:"Rumore",items:[
+["Il rumore è valutato con misure da tecnico competente per mansione?","art. 190","Relazione fonometrica"],
+["La valutazione è aggiornata (almeno ogni quattro anni o dopo modifiche significative)?","art. 181; art. 190"],
+["Sono individuati LEX,8h e Ppeak per mansione, con fascia di esposizione (valori di azione e limite)?","art. 189"],
+["Esiste un programma di misure tecniche e organizzative per ridurre l'esposizione?","art. 192"],
+["Le aree rumorose sono delimitate e segnalate, con accesso regolato?","art. 192"],
+["Gli otoprotettori sono messi a disposizione e usati ai livelli previsti, con attenuazione adeguata?","art. 193"],
+["I lavoratori esposti sono informati e formati?","art. 195"],
+["La sorveglianza sanitaria dei lavoratori esposti è attiva?","art. 196"]
+]},
+{id:"vib",dep:["vib"],t:"Titolo VIII, Capo III",name:"Vibrazioni",items:[
+["Sono valutate le vibrazioni mano-braccio e corpo intero, con banche dati o misure?","art. 202"],
+["Confronto con valori di azione e limite per mansione e tempi di esposizione?","art. 201"],
+["Misure tecniche e organizzative (manutenzione, utensili antivibranti, rotazioni) sono attuate?","art. 203"],
+["I lavoratori esposti sono informati e formati?","art. 36-37"],
+["La sorveglianza sanitaria è attiva?","art. 204"]
+]},
+{id:"em",dep:["em"],t:"Titolo VIII, Capo IV",name:"Campi elettromagnetici",items:[
+["L'esposizione ai campi elettromagnetici è valutata rispetto ai valori limite e di azione?","art. 208-209; All. XXXVI"],
+["Lavoratori particolarmente sensibili (portatori di pacemaker o impianti attivi, gestanti) sono individuati?","art. 183; art. 209"],
+["Le aree con esposizione significativa sono delimitate e segnalate?","art. 210"],
+["Informazione, formazione e sorveglianza sanitaria sono attive?","art. 210-211"]
+]},
+{id:"roa",dep:["roa"],t:"Titolo VIII, Capo V",name:"Radiazioni ottiche artificiali",items:[
+["Sorgenti ROA censite e valutate rispetto ai valori limite (All. XXXVII)?","art. 215-216; All. XXXVII"],
+["Misure di prevenzione (schermature, DPI oculari e cutanei, segnaletica, procedure laser) sono attuate?","art. 217"],
+["La sorveglianza sanitaria è attiva dove richiesta?","art. 218"]
+]},
+{id:"mic",dep:["mic"],t:"Titolo VIII, Capo I",name:"Microclima severo e stress termico",items:[
+["Lo stress termico è valutato (per esempio WBGT) per le mansioni esposte?","art. 180-181; All. IV"],
+["Sono previste misure: acqua, pause, turni, ombreggiamento, abbigliamento adatto?","art. 182"],
+["Esiste una procedura per ondate di calore, che tiene conto delle ordinanze e dei protocolli vigenti?","art. 181-182"],
+["Per il lavoro al freddo (celle frigorifere) ci sono DPI termici, pause e controlli?","art. 181-182","N.A. se assente"],
+["I lavoratori sono informati e formati sui rischi da caldo e freddo?","art. 184"]
+]},
+{id:"ion",dep:["ion"],t:"Fuori dal D.Lgs. 81/2008",name:"Radiazioni ionizzanti (D.Lgs. 101/2020)",note:"Il Titolo VIII non disciplina le radiazioni ionizzanti: servono gli adempimenti del D.Lgs. 101/2020.",items:[
+["Sono nominati esperto di radioprotezione o fisico medico, con classificazione di zone e lavoratori?","D.Lgs. 101/2020"],
+["Autorizzazioni e nulla osta, registro delle sorgenti, dosimetria personale e sorveglianza medica sono in regola?","D.Lgs. 101/2020"],
+["Segnaletica, procedure e formazione specifica sono presenti?","D.Lgs. 101/2020"]
+]},
+{id:"chim",dep:["chim"],t:"Titolo IX, Capo I",name:"Agenti chimici pericolosi",items:[
+["C'è un censimento di sostanze e miscele con schede di sicurezza aggiornate e accessibili ai lavoratori e al medico competente?","art. 223; Reg. CE 1907/2006","Schede di sicurezza"],
+["I contenitori originali e i travasi sono etichettati secondo il CLP?","Reg. CE 1272/2008"],
+["La valutazione del rischio chimico è documentata, con esito (irrilevante, basso o non basso)?","art. 223; art. 224"],
+["Sostituzione, cicli chiusi, aspirazioni localizzate e altre misure sono attuate, con manutenzione e controlli?","art. 224-225"],
+["Dove ci sono valori limite di esposizione professionale, sono previsti controlli o misure ambientali?","art. 225; All. XXXVIII","N.A. se non ci sono agenti con valore limite"],
+["Lo stoccaggio è corretto: armadi di sicurezza, incompatibilità, bacini di contenimento, ventilazione?","art. 224"],
+["Bombole e gas compressi: fissaggio, depositi e certificazioni in ordine?","art. 224","N.A. se non presenti"],
+["Per emergenze e sversamenti: procedure, kit, lavaocchi e docce?","art. 226"],
+["Informazione e formazione specifica su rischi e schede di sicurezza?","art. 227"],
+["DPI scelti secondo le schede di sicurezza (guanti, filtri, maschere) e addestramento?","art. 224-225; art. 77"],
+["Per esposizioni non irrilevanti: sorveglianza sanitaria e cartelle di rischio?","art. 229-230"]
+]},
+{id:"cmr",dep:["cmr"],t:"Titolo IX, Capo II",name:"Cancerogeni, mutageni e reprotossici",note:"Per i laboratori di ricerca usa anche il modulo di valutazione CMR.",items:[
+["È tenuto l'elenco delle sostanze CMR presenti (indicazioni di pericolo H340, H350, H360) con quantità?","art. 234-236"],
+["Esposizione valutata e sostituibilità verificata?","art. 235-236"],
+["Le lavorazioni avvengono in ciclo chiuso o con misure equivalenti, in aree delimitate?","art. 235; art. 237"],
+["Misure igieniche e procedure per esposizioni non prevedibili ed emergenze?","art. 238; art. 240"],
+["Registro degli esposti e cartelle sanitarie sono istituiti e conservati?","art. 243"],
+["Informazione, formazione e DPI specifici?","art. 239"],
+["La sorveglianza sanitaria è attiva?","art. 242"],
+["Lavoratrici in gravidanza, allattamento o in età fertile: rischio reprotossico valutato?","art. 28, c. 1; D.Lgs. 151/2001"]
+]},
+{id:"amia",dep:["amia"],t:"Titolo IX, Capo III",name:"Amianto",items:[
+["Presenza di amianto verificata (ispezione, campionamenti) e materiali mappati?","art. 248, c. 1","Mappatura, analisi"],
+["C'è un programma di controllo e manutenzione con valutazione dello stato di conservazione?","art. 248; DM 6/9/1994"],
+["Il rischio è valutato per lavori che possono provocare esposizione?","art. 249"],
+["Prima dei lavori: notifica all'organo di vigilanza e piano di lavoro?","art. 250; art. 256","N.A. se non ci sono lavori"],
+["Le ditte di rimozione sono qualificate e i rifiuti conferiti correttamente?","art. 256; D.Lgs. 152/2006","N.A. se non ci sono lavori"],
+["Informazione, formazione, sorveglianza sanitaria e registro degli esposti sono attivi?","art. 257-260"]
+]},
+{id:"bio",dep:["bio"],t:"Titolo X",name:"Agenti biologici",items:[
+["Gli agenti biologici presenti sono individuati e classificati?","art. 267-268; All. XLVI"],
+["La valutazione del rischio biologico è documentata, con misure conseguenti?","art. 271"],
+["Misure tecniche, organizzative e procedurali (compresa l'igiene personale) sono attuate?","art. 272-273"],
+["Per strutture sanitarie e veterinarie: misure specifiche e gestione di rifiuti e taglienti?","art. 274","N.A. se non è struttura sanitaria o veterinaria"],
+["Per laboratori e stabulari: misure specifiche e livelli di contenimento?","art. 275","N.A. se non ci sono laboratori"],
+["Dispositivi di sicurezza contro punture e tagli, procedure di segnalazione e gestione degli infortuni?","art. 286-bis e seguenti","N.A. se non è settore ospedaliero o sanitario"],
+["Piano per incidenti biologici (rottura provette, fuoriuscite, esposizioni accidentali)?","art. 277"],
+["Informazione, formazione e vaccinazioni offerte dove indicate?","art. 278-279"],
+["Registro degli esposti, eventi accidentali e documentazione sanitaria in ordine?","art. 280-281","N.A. se non richiesti"],
+["Rischio legionella valutato, con controlli su impianti idrici e aeraulici?","art. 271; Linee guida Legionella 2015","N.A. se non pertinente"]
+]},
+{id:"atex",dep:["atex"],t:"Titolo XI",name:"Atmosfere esplosive",items:[
+["Il rischio di esplosione è valutato e le aree classificate (zone gas e polveri)?","art. 290; art. 293; All. XLIX"],
+["Esiste il documento sulla protezione contro le esplosioni, aggiornato?","art. 294"],
+["Apparecchi e impianti in zona hanno marcatura ATEX adeguata, manutenzione e verifiche?","art. 295-296; All. L"],
+["Le zone sono segnalate (All. LI) con accessi controllati?","art. 293"],
+["Misure organizzative: permessi di lavoro, divieti e coordinamento tra datori di lavoro?","art. 292"],
+["I lavoratori hanno formazione specifica sulla protezione dalle esplosioni?","art. 291"]
+]},
+{id:"app",dep:["app"],t:"Titolo I, art. 26",name:"Appalti, lavoratori autonomi e DUVRI",items:[
+["Esiste l'elenco delle imprese e dei lavoratori autonomi che operano in sede, con attività e durata?","art. 26","Elenco appaltatori"],
+["È verificata l'idoneità tecnico-professionale (camera di commercio, autocertificazione, DURC)?","art. 26, c. 1, lett. a"],
+["Sono fornite agli esterni informazioni su rischi specifici dell'ambiente, misure di prevenzione e di emergenza?","art. 26, c. 1, lett. b"],
+["Cooperazione e coordinamento sono svolti e documentati?","art. 26, c. 2"],
+["Il DUVRI è redatto e allegato al contratto, o l'esclusione è motivata?","art. 26, c. 3 e 3-bis","DUVRI"],
+["I costi della sicurezza sono indicati nei contratti di appalto, subappalto e somministrazione?","art. 26, c. 5"],
+["Il personale esterno ha la tessera di riconoscimento con foto, generalità e datore di lavoro?","art. 26, c. 8; art. 18, c. 1, lett. u"],
+["Gli esterni risultano formati e abilitati e con mezzi e attrezzature conformi?","art. 26"],
+["Distacchi e somministrazione hanno obblighi reciproci di formazione e DPI chiari?","art. 3, c. 5"],
+["Visitatori, clienti e utenti ricevono le regole di sicurezza e percorsi dedicati?","art. 26; art. 43"]
+]},
+{id:"int",dep:["int","app","cant"],t:"Titolo I, art. 26",name:"Interferenze tra attività e imprese",note:"Interferenza: contatto rischioso tra lavoratori di datori di lavoro diversi, o tra attività diverse negli stessi spazi (definizione della determinazione AVCP 3/2008, da confermare). I rischi specifici di ciascuna impresa restano fuori dal DUVRI (art. 26, c. 3).",items:[
+["Sono identificati tutti i soggetti che operano negli stessi spazi o a contatto (altri datori di lavoro, appaltatori, inquilini, cooperative, autonomi)?","art. 26, c. 1-2","Elenco soggetti, planimetria"],
+["Sono mappate le attività che si sovrappongono nello spazio o nel tempo (stesso reparto, stessa fascia oraria, spazi condivisi)?","art. 26, c. 3"],
+["Per ogni sovrapposizione sono indicati il tipo di rischio da interferenza, il luogo, l'orario e chi attua la misura?","art. 26, c. 3","DUVRI"],
+["Nell'edificio con più datori di lavoro (condominio, centro commerciale, sede condivisa) le parti comuni (accessi, scale, ascensori, impianti) hanno un coordinamento?","art. 26, c. 2"],
+["Il piano di emergenza ed evacuazione è coordinato tra i soggetti presenti (allarme, squadre, punto di raccolta, comunicazioni)?","art. 26, c. 2; art. 43; art. 46","Piano di emergenza condiviso"],
+["Mezzi e pedoni hanno percorsi separati nelle aree comuni (carico e scarico, piazzali, magazzino), con segnaletica e regole di precedenza?","art. 63; All. IV"],
+["Le lavorazioni di terzi in aree attive (manutenzioni, pulizie, lavori edili) sono delimitate, segnalate e autorizzate prima dell'inizio?","art. 26, c. 1, lett. b e c. 2","Permesso di lavoro"],
+["Quando si fermano impianti elettrici, idrici, del gas o antincendio per lavori, si disattivano in sicurezza, si avvisano gli altri e si prevedono misure compensative?","art. 26; art. 46; art. 80"],
+["Attrezzature, spogliatoi, servizi igienici, mensa e locali di primo soccorso usati in comune hanno regole e responsabilità definite?","art. 26, c. 2; All. IV"],
+["Si sa chi è presente e quando, anche fuori orario (pulizie notturne, lavoratori isolati), con gestione di chiavi, accessi e orari?","art. 26, c. 2"],
+["Polveri, fumi, rumore, saldatura o fiamme libere di un'attività possono raggiungere i lavoratori di altre attività, e ci sono separazioni o orari diversi?","art. 26, c. 3; art. 181; art. 223"],
+["Dove si lavora in quota o a diversi livelli, le aree sottostanti sono delimitate per la caduta di materiali?","art. 26, c. 3; Titolo IV, Capo II"],
+["Carrelli, gru, piattaforme e altri sollevamenti operano dove transitano persone di altre imprese, con delimitazioni o segnalatori?","art. 26, c. 3; art. 71"],
+["È nominato un referente per il coordinamento, che decide e interviene se due attività entrano in conflitto?","art. 26, c. 2; art. 19","Nomina del referente"],
+["Si fanno riunioni di coordinamento con verbale, e il DUVRI è aggiornato quando cambiano le attività?","art. 26, c. 2-3","Verbali di coordinamento"],
+["Infortuni e quasi incidenti dovuti a interferenze sono segnalati e condivisi tra le imprese, e il personale esterno capisce istruzioni e segnaletica (anche in lingua)?","art. 26, c. 1, lett. b; art. 36"]
+]},
+{id:"cant",dep:["cant"],t:"Titolo IV",name:"Cantieri temporanei o mobili",items:[
+["Il lavoro rientra nell'Allegato X e sono individuati committente e responsabile dei lavori?","art. 89; All. X"],
+["Notifica preliminare e coordinatori (progettazione ed esecuzione) sono nominati dove richiesto?","art. 90; art. 99"],
+["Esistono PSC e fascicolo dell'opera, e i POS delle imprese esecutrici?","art. 91; art. 100; art. 96, c. 1, lett. g"],
+["È verificata l'idoneità tecnico-professionale delle imprese e dei lavoratori autonomi (All. XVII) e il DURC?","art. 90, c. 9; All. XVII"],
+["Le imprese e i lavoratori autonomi hanno la patente a crediti?","art. 27"],
+["Cartello di cantiere, recinzioni, delimitazione, viabilità e carichi sospesi sono gestiti?","art. 108-109"],
+["I ponteggi hanno Pi.M.U.S., autorizzazione ministeriale e montaggio da personale formato?","art. 131-138"],
+["Scavi, demolizioni e lavori su coperture sono condotti con le misure previste?","art. 118-121; art. 148; art. 150-155"],
+["Le interferenze con l'attività in corso nella sede (accessi, emergenze) sono coordinate?","art. 26; art. 92"]
+]},
+{id:"quota",dep:["quota"],t:"Titolo IV, Capo II",name:"Lavori in quota",items:[
+["I lavori in quota sono valutati con priorità alle protezioni collettive (parapetti, ponteggi) su quelle individuali?","art. 111"],
+["Le scale portatili sono adatte, in buono stato e usate in modo appropriato, con formazione?","art. 113; All. XX"],
+["Trabattelli, piattaforme e ponti su ruote sono montati secondo il manuale, con formazione e abilitazione?","art. 140; art. 73"],
+["Per coperture, lucernari e terrazzi: accessi, linee vita e ancoraggi (UNI EN 795), cartelli e procedura?","art. 148","N.A. se non ci sono coperture accessibili"],
+["I DPI anticaduta sono scelti, con addestramento, ispezioni periodiche e piano di salvataggio?","art. 115; art. 77, c. 5"],
+["È previsto il recupero dell'operatore caduto e la comunicazione in caso di lavoro isolato?","art. 111"]
+]},
+{id:"conf",dep:["conf"],t:"Titolo II, art. 66",name:"Spazi confinati e ambienti sospetti di inquinamento",items:[
+["Gli spazi confinati o sospetti sono censiti e segnalati, con accesso vietato ai non autorizzati?","art. 66; DPR 177/2011"],
+["Imprese e lavoratori sono qualificati, con addestramento specifico e DPI?","DPR 177/2011, art. 2"],
+["Esiste una procedura di ingresso: permesso, ventilazione o bonifica, misura dell'atmosfera, sorveglianza esterna, piano di recupero?","art. 66; All. IV"],
+["Rilevatori multigas, DPI e attrezzature di recupero sono tarati e mantenuti?","art. 66; art. 77"],
+["Le informazioni sui rischi specifici e il coordinamento con l'impresa esecutrice sono documentati?","art. 26; DPR 177/2011"]
+]},
+{id:"cat",t:"Art. 28 e norme collegate",name:"Categorie di lavoratori e organizzazione del lavoro",items:[
+["Gestanti, puerpere e in allattamento: valutazione specifica, misure e spostamento di mansione?","D.Lgs. 151/2001, art. 7-12; art. 28, c. 1","N.A. se non presenti"],
+["Minori, apprendisti e tirocinanti: valutazione, divieti e sorveglianza?","L. 977/1967; art. 28, c. 1; art. 2, c. 1, lett. a","N.A. se non presenti"],
+["Lavoratori notturni e turnisti: valutazione, sorveglianza sanitaria e pause?","D.Lgs. 66/2003, art. 14","N.A. se non presenti"],
+["Lavoratori stranieri: lingua e comprensione di informazione e formazione?","art. 37, c. 13; art. 28, c. 1","N.A. se non presenti"],
+["Lavoratori con disabilità, limitazioni o età avanzata: adattamenti di mansione e postazione?","art. 28, c. 1; art. 41","N.A. se non presenti"],
+["Lavoratori somministrati o distaccati: obblighi di informazione, formazione e DPI ripartiti?","art. 3, c. 5; D.Lgs. 81/2015, art. 35","N.A. se non presenti"],
+["Lavoro agile o a distanza: informativa scritta sui rischi consegnata?","L. 81/2017, art. 22","N.A. se non presente"],
+["Lavoro isolato o solitario (anche notturno o in trasferta): procedure di controllo e comunicazione?","art. 28, c. 1","N.A. se non presente"],
+["Violenza, molestie e aggressioni (utenza, pazienti, rapine): misure e procedure?","art. 15, c. 1, lett. z-bis; art. 28, c. 1"],
+["Alcol e sostanze: politica aziendale, mansioni a rischio per terzi e accertamenti?","L. 125/2001, art. 15; art. 41","N.A. se non ci sono mansioni a rischio"],
+["Guida di veicoli aziendali e trasferte: patenti, manutenzione, formazione, rischio stradale?","art. 28, c. 1","N.A. se non presenti"]
+]},
+{id:"sic",dep:["sic"],t:"Art. 28",name:"Sicurezza personale: rapina, aggressione e disordini",items:[
+["Il rischio di rapina, aggressione e disordini è valutato per front office, cassa, valori e orari di apertura?","art. 28, c. 1"],
+["Sono presenti misure di protezione: videosorveglianza, allarme, pulsante antipanico, controllo accessi, vigilanza, gestione dei contanti?","art. 28; art. 64"],
+["Esistono procedure di comportamento in caso di rapina, aggressione o minaccia, e i lavoratori sono formati?","art. 36-37; art. 43"],
+["Il contesto locale (criminalità, disordini, terrorismo, situazione geopolitica) è considerato per sede e trasferte?","art. 28, c. 1"],
+["Dopo un evento: segnalazione, registro, supporto psicologico e riesame delle misure?","art. 15, c. 1, lett. z-bis; art. 29, c. 3"],
+["I rischi psicosociali da abusi verbali o fisici dell'utenza sono considerati nella valutazione dello stress?","art. 28, c. 1"]
+]},
+{id:"inf",t:"Titolo I",name:"Infortuni, vigilanza e documentazione",items:[
+["Gli infortuni degli ultimi anni sono analizzati (cause, frequenza, gravità) con azioni correttive?","art. 28, c. 2; art. 29, c. 3","Dati infortuni"],
+["Gli infortuni sono comunicati e denunciati all'INAIL nei tempi?","art. 18, c. 1 (comunicazione infortuni)"],
+["Esiste una procedura per raccogliere e analizzare i quasi infortuni?","Buona prassi (ISO 45001)"],
+["Le malattie professionali segnalate sono note e analizzate?","DPR 1124/1965","N.A. se nessuna"],
+["Verbali e prescrizioni di organi di vigilanza (ASL o ATS, INL, Vigili del fuoco, INAIL) sono adempiuti?","D.Lgs. 758/1994","Verbali di ispezione"],
+["Esiste un programma di miglioramento con responsabili, tempi e verifica dell'avanzamento?","art. 28, c. 2, lett. c"],
+["L'archivio documentale della sicurezza è ordinato, accessibile e conservato (anche in formato informatico)?","art. 53"],
+["Sono programmati controlli interni periodici su sicurezza e rispetto delle procedure?","art. 19; art. 33"]
+]}
+];
+
+/* ---------- COMUNE ---------- */
+function h(tag,attrs,...kids){const e=document.createElement(tag);if(attrs)for(const [n,v] of Object.entries(attrs)){if(n==="class")e.className=v;else if(n==="text")e.textContent=v;else if(n.startsWith("on"))e.addEventListener(n.slice(2),v);else if(v!==false&&v!=null)e.setAttribute(n,v)}for(const c of kids.flat()){if(c==null)continue;e.append(c.nodeType?c:document.createTextNode(c))}return e}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+const LBL={si:"Sì",no:"No",na:"N.A.",ver:"Da verificare"};
+const secById=Object.fromEntries(SECS.map(s=>[s.id,s]));
+const scrById=Object.fromEntries(SCREEN.map(s=>[s[0],s]));
+function offReason(sec){return sec.dep.map(d=>scrById[d][1]).join(" / ")}
+const PL={imm:"Immediata",alta:"Alta",media:"Media",bassa:"Bassa"};
+const ORD={imm:0,alta:1,media:2,bassa:3};
+const PV=[[1,"1 · Remota"],[2,"2 · Improbabile"],[4,"4 · Possibile"],[8,"8 · Probabile"],[10,"10 · Molto probabile"]];
+const CV=[[1,"1 · Trascurabile"],[2,"2 · Bassa"],[4,"4 · Media"],[8,"8 · Alta"],[10,"10 · Estrema"]];
+function rating(r){return r>=80?["Estremo","imm"]:r>=32?["Alto","alta"]:r>=16?["Medio","media"]:r>=4?["Basso","bassa"]:["Trascurabile","bassa"]}
+function fmtSize(n){return n>=1048576?(n/1048576).toFixed(1).replace(".",",")+" MB":Math.max(1,Math.round(n/1024))+" KB"}
+function fmtDT(ts){if(!ts)return "";const d=new Date(ts);const p=n=>String(n).padStart(2,"0");return p(d.getDate())+"/"+p(d.getMonth()+1)+"/"+d.getFullYear()+" "+p(d.getHours())+":"+p(d.getMinutes())}
+function todayStr(){const d=new Date();const p=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())}
+function newId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function objUrl(b){try{return URL.createObjectURL(b)}catch(e){return ""}}
+function blobToDataUrl(b){return new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)})}
+function dataUrlToBlob(u){const p=u.split(",");const mime=(p[0].match(/:(.*?);/)||[])[1]||"application/octet-stream";const bin=atob(p[1]);const a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return new Blob([a],{type:mime})}
+
+/* ---------- STATO DEI SOPRALLUOGHI (localStorage, una chiave per sopralluogo) ---------- */
+function normalize(o){const r={meta:{},screen:{},items:{},force:{},sys:{}};if(o&&typeof o==="object"){for(const k of Object.keys(r)){if(o[k]&&typeof o[k]==="object")r[k]=o[k]}}return r}
+function loadState(id){try{const raw=localStorage.getItem("s81:"+id);return raw?normalize(JSON.parse(raw)):null}catch(e){return null}}
+function saveState(id,st){st.sys.updated=Date.now();try{localStorage.setItem("s81:"+id,JSON.stringify(st));return true}catch(e){return false}}
+function listInsp(){const out=[];try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf("s81:")===0){const id=k.slice(4);const st=loadState(id);if(st)out.push({id,st})}}}catch(e){}out.sort((a,b)=>(b.st.sys.updated||0)-(a.st.sys.updated||0));return out}
+function applFor(st,sec){if(st.force[sec.id])return true;if(!sec.dep||!sec.dep.length)return true;return !sec.dep.every(d=>st.screen[d]==="no")}
+function computeFor(st){
+  const rows=[];let T=0,A=0,N=0,V=0,Y=0,X=0;const PC={imm:0,alta:0,media:0,bassa:0,nd:0};
+  SECS.forEach(sec=>{
+    const ap=applFor(st,sec);let t=0,a=0,n=0,v=0,y=0,x=0;
+    sec.items.forEach((it,i)=>{const e=st.items[sec.id+"."+i]||{};const s=e.s;t++;if(s)a++;if(s==="no"){n++;if(ap)PC[e.pr||"nd"]++}if(s==="ver")v++;if(s==="si")y++;if(s==="na")x++});
+    rows.push({sec,ap,t,a,n,v,y,x});
+    if(ap){T+=t;A+=a;N+=n;V+=v;Y+=y;X+=x}
+  });
+  return {rows,T,A,N,V,Y,X,PC};
+}
+function stampOf(st){const d=st.meta.data||todayStr();const s=(st.meta.sede||st.meta.azienda||"sede").replace(/[^\w\-]+/g,"_").slice(0,40);return s+"_"+d}
+let flushHook=null;
+function go(hh){if(flushHook)flushHook();if(location.hash===hh)location.reload();else location.hash=hh}
+
+/* ---------- ALLEGATI: IndexedDB (con copia in memoria solo se il database non è disponibile) ---------- */
+const MEM=new Map();let idb=null;
+const idbReady=new Promise(res=>{try{const r=indexedDB.open("s81",1);r.onupgradeneeded=()=>{const s=r.result.createObjectStore("m",{keyPath:"id"});s.createIndex("insp","insp")};r.onsuccess=()=>{idb=r.result;res(true)};r.onerror=()=>res(false);r.onblocked=()=>res(false)}catch(e){res(false)}});
+function mPut(rec){return idbReady.then(()=>new Promise(res=>{
+  if(!idb){MEM.set(rec.id,rec);return res(false)}
+  try{const tx=idb.transaction("m","readwrite");tx.objectStore("m").put(rec);tx.oncomplete=()=>res(true);tx.onerror=()=>{MEM.set(rec.id,rec);res(false)};tx.onabort=()=>{MEM.set(rec.id,rec);res(false)}}catch(e){MEM.set(rec.id,rec);res(false)}}))}
+function mGet(id){if(MEM.has(id))return Promise.resolve(MEM.get(id));return idbReady.then(()=>new Promise(res=>{if(!idb)return res(null);try{const q=idb.transaction("m").objectStore("m").get(id);q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)}catch(e){res(null)}}))}
+function mDel(id){MEM.delete(id);return idbReady.then(()=>new Promise(res=>{if(!idb)return res();try{const tx=idb.transaction("m","readwrite");tx.objectStore("m").delete(id);tx.oncomplete=()=>res();tx.onerror=()=>res();tx.onabort=()=>res()}catch(e){res()}}))}
+function mClear(insp){for(const [k,v] of [...MEM])if(v.insp===insp)MEM.delete(k);return idbReady.then(()=>new Promise(res=>{
+  if(!idb)return res();
+  try{const tx=idb.transaction("m","readwrite");const q=tx.objectStore("m").index("insp").openCursor(IDBKeyRange.only(insp));q.onsuccess=()=>{const c=q.result;if(c){c.delete();c.continue()}};tx.oncomplete=()=>res();tx.onerror=()=>res();tx.onabort=()=>res()}catch(e){res()}}))}
+
+/* ---------- ZIP (senza compressione: foto e audio sono già compressi) ---------- */
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=CRC[(c^u8[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
+async function toU8(d){if(typeof d==="string")return new TextEncoder().encode(d);if(d instanceof Uint8Array)return d;return new Uint8Array(await d.arrayBuffer())}
+async function makeZip(files){
+  const enc=new TextEncoder();const parts=[];const cen=[];let off=0;
+  const now=new Date();const dt=(((now.getFullYear()-1980)<<9)|((now.getMonth()+1)<<5)|now.getDate())&0xFFFF;const tm=((now.getHours()<<11)|(now.getMinutes()<<5)|(now.getSeconds()>>1))&0xFFFF;
+  for(const f of files){
+    const data=await toU8(f.data);const name=enc.encode(f.name);const crc=crc32(data);
+    const lh=new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint16(8,0,true);lh.setUint16(10,tm,true);lh.setUint16(12,dt,true);lh.setUint32(14,crc,true);lh.setUint32(18,data.length,true);lh.setUint32(22,data.length,true);lh.setUint16(26,name.length,true);lh.setUint16(28,0,true);
+    parts.push(new Uint8Array(lh.buffer),name,data);
+    const ch=new DataView(new ArrayBuffer(46));
+    ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x0800,true);ch.setUint16(10,0,true);ch.setUint16(12,tm,true);ch.setUint16(14,dt,true);ch.setUint32(16,crc,true);ch.setUint32(20,data.length,true);ch.setUint32(24,data.length,true);ch.setUint16(28,name.length,true);ch.setUint32(42,off,true);
+    cen.push(new Uint8Array(ch.buffer),name);
+    off+=30+name.length+data.length;
+  }
+  let cs=0;for(const c of cen)cs+=c.length;
+  const e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cs,true);e.setUint32(16,off,true);
+  return new Blob([...parts,...cen,new Uint8Array(e.buffer)],{type:"application/zip"});
+}
+async function readZip(blob){
+  const buf=await blob.arrayBuffer();const dv=new DataView(buf);const u8=new Uint8Array(buf);
+  let e=-1;for(let i=buf.byteLength-22;i>=Math.max(0,buf.byteLength-22-65535);i--){if(dv.getUint32(i,true)===0x06054b50){e=i;break}}
+  if(e<0)throw new Error("zip");
+  const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);const out=new Map();const dec=new TextDecoder();
+  for(let i=0;i<n;i++){
+    if(dv.getUint32(p,true)!==0x02014b50)throw new Error("zip");
+    const method=dv.getUint16(p+10,true),csz=dv.getUint32(p+20,true),nl=dv.getUint16(p+28,true),xl=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lo=dv.getUint32(p+42,true);
+    const name=dec.decode(u8.subarray(p+46,p+46+nl));
+    const ds=lo+30+dv.getUint16(lo+26,true)+dv.getUint16(lo+28,true);
+    let data=u8.slice(ds,ds+csz);
+    if(method===8){data=new Uint8Array(await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer())}
+    else if(method!==0)throw new Error("metodo zip non supportato");
+    out.set(name,data);p+=46+nl+xl+cl;
+  }
+  return out;
+}
+
+/* ---------- REPORT ---------- */
+const REPORT_CSS=".rep{background:#fff;color:#111;font:14px/1.45 system-ui,-apple-system,'Segoe UI',sans-serif;max-width:920px;margin:0 auto;padding:16px}.rep h1{font-size:22px;margin:0 0 8px}.rep h2{font-size:16px;margin:22px 0 6px;border-bottom:1px solid #999;padding-bottom:2px}.rep table{border-collapse:collapse;width:100%}.rep td,.rep th{border:1px solid #ccc;padding:4px 6px;text-align:left;vertical-align:top;font-size:13px}.rep th{background:#f0f2f4;font-weight:600}.rep table.mt th{width:30%}.rep .crit{border:1px solid #ccc;border-left:4px solid #b3261e;padding:6px 10px;margin:8px 0;break-inside:avoid}.rep .crit.ver{border-left-color:#9a6200}.rep .crit.oth{border-left-color:#999}.rep .pr{display:inline-block;padding:0 6px;border-radius:3px;font-weight:600;font-size:12px;color:#fff}.rep .pr-imm{background:#b3261e}.rep .pr-alta{background:#9a6200}.rep .pr-media{background:#1d4f7a}.rep .pr-bassa{background:#5d6b7a}.rep .ph{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.rep .ph img{height:150px;width:auto;max-width:100%;border:1px solid #ccc;border-radius:3px}.rep .sm{color:#555;font-size:12px}.rep audio{height:30px;vertical-align:middle}.rep .bar2{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.rep .bar2 button{border:1px solid #999;background:#f5f5f5;color:#111;border-radius:6px;padding:6px 12px;font-size:14px;cursor:pointer}.rep .bar2 button.p{background:#1d4f7a;color:#fff;border-color:#1d4f7a}@media print{.noprint{display:none!important}body{background:#fff!important}.rep{padding:0;max-width:none}.rep audio{display:none}}";
+function medHtml(e,src){
+  const ms=e.m||[];let o="";
+  const imgs=ms.filter(m=>m.t==="img"&&src(m));
+  if(imgs.length)o+='<div class="ph">'+imgs.map(m=>'<img src="'+esc(src(m))+'" alt="'+esc(m.name)+'">').join("")+"</div>";
+  ms.filter(m=>m.t!=="img").forEach(m=>{const s=src(m);o+='<div class="sm">Nota vocale: '+(s?'<audio controls src="'+esc(s)+'"></audio>':esc(m.name)+" (file nel backup ZIP)")+"</div>"});
+  return o;
+}
+function reportBody(st,src){
+  const C=computeFor(st);let o="";
+  o+="<h1>Report di primo sopralluogo</h1>";
+  o+='<table class="mt">'+META.map(([k,l])=>st.meta[k]?"<tr><th>"+esc(l)+"</th><td>"+esc(k==="data"?st.meta[k].split("-").reverse().join("/"):st.meta[k])+"</td></tr>":"").join("")+"</table>";
+  o+="<h2>Sintesi</h2><p>Voci compilate nelle sezioni applicabili: <b>"+C.A+" su "+C.T+"</b>. Sì "+C.Y+" · No "+C.N+" · Da verificare "+C.V+" · N.A. "+C.X+".</p>";
+  o+="<p>Criticità per priorità: Immediata <b>"+C.PC.imm+"</b> · Alta <b>"+C.PC.alta+"</b> · Media <b>"+C.PC.media+"</b> · Bassa <b>"+C.PC.bassa+"</b> · senza priorità <b>"+C.PC.nd+"</b>.</p>";
+  const no=[],ver=[],oth=[];
+  C.rows.filter(r=>r.ap).forEach(r=>r.sec.items.forEach((it,i)=>{
+    const e=st.items[r.sec.id+"."+i]||{};
+    if(e.s==="no")no.push({r,it,e});else if(e.s==="ver")ver.push({r,it,e});else if(e.m&&e.m.length)oth.push({r,it,e});
+  }));
+  no.sort((a,b)=>(ORD[a.e.pr]===undefined?9:ORD[a.e.pr])-(ORD[b.e.pr]===undefined?9:ORD[b.e.pr]));
+  const card=(x,cls)=>{const e=x.e;return '<div class="crit '+cls+'"><div class="sm">'+esc(x.r.sec.name)+"</div><div>"+(e.pr?'<span class="pr pr-'+e.pr+'">'+PL[e.pr]+"</span> ":"")+esc(x.it[0])+'</div><div class="sm">'+esc(x.it[1])+((e.p&&e.c)?" · R = "+(e.p*e.c)+" ("+rating(e.p*e.c)[0]+")":"")+"</div>"+(x.it[2]?'<div class="sm">Richiedere: '+esc(x.it[2])+"</div>":"")+(e.n?"<div>Nota: "+esc(e.n)+"</div>":"")+medHtml(e,src)+"</div>"};
+  o+="<h2>Criticità (esito No) — "+no.length+"</h2>"+(no.length?no.map(x=>card(x,"")).join(""):"<p>Nessuna criticità segnata.</p>");
+  o+="<h2>Da verificare — "+ver.length+"</h2>"+(ver.length?ver.map(x=>card(x,"ver")).join(""):"<p>Nessuna voce da verificare.</p>");
+  if(oth.length)o+="<h2>Altri allegati</h2>"+oth.map(x=>card(x,"oth").replace('<div class="sm">'+esc(x.r.sec.name)+"</div>",'<div class="sm">'+esc(x.r.sec.name)+" · esito: "+(x.e.s?LBL[x.e.s]:"non compilato")+"</div>")).join("");
+  o+="<h2>Esiti per aspetto</h2><table><thead><tr><th>Aspetto</th><th>Compilate</th><th>Sì</th><th>No</th><th>Da verif.</th><th>N.A.</th></tr></thead><tbody>"+C.rows.filter(r=>r.ap).map(r=>"<tr><td>"+esc(r.sec.name)+"</td><td>"+r.a+"/"+r.t+"</td><td>"+r.y+"</td><td>"+r.n+"</td><td>"+r.v+"</td><td>"+r.x+"</td></tr>").join("")+"</tbody></table>";
+  const off=C.rows.filter(r=>!r.ap);
+  o+="<h2>Aspetti non applicabili</h2>"+(off.length?"<ul>"+off.map(r=>"<li>"+esc(r.sec.name)+' <span class="sm">('+esc(r.sec.t)+" — escluso: "+esc(offReason(r.sec))+" = No)</span></li>").join("")+"</ul>":"<p>Nessun aspetto escluso dallo screening.</p>");
+  o+="<h2>Screening di applicabilità</h2><table><thead><tr><th>Domanda</th><th>Risposta</th></tr></thead><tbody>"+SCREEN.map(([id,q])=>"<tr><td>"+esc(q)+"</td><td>"+(st.screen[id]==="si"?"Sì":st.screen[id]==="no"?"No":st.screen[id]==="ver"?"Da stabilire":"—")+"</td></tr>").join("")+"</tbody></table>";
+  o+='<p class="sm" style="margin-top:18px">Riferimenti indicati a livello di articolo, allegato e atti collegati: commi, lettere e atti richiamati vanno confermati sul testo vigente prima di citarli in documenti formali.</p>';
+  return o;
+}
+function reportHtml(st,src){return '<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Report sopralluogo '+esc(stampOf(st))+"</title><style>"+REPORT_CSS+'</style></head><body><div class="rep">'+reportBody(st,src)+"</div></body></html>"}
+
+/* ---------- EXCEL ---------- */
+function xlsxBlob(st){
+  if(typeof XLSX==="undefined")return null;
+  const C=computeFor(st);
+  const s1=[["Campo","Valore"],...META.map(([k,l])=>[l,st.meta[k]||""]),[],["Screening di applicabilità","Risposta","Riferimento"],
+    ...SCREEN.map(([id,q,ref])=>[q,st.screen[id]?(st.screen[id]==="si"?"Sì":st.screen[id]==="no"?"No":"Da stabilire"):"",ref])];
+  const s2=[["Aspetto","Titolo","Riferimento","Domanda","Esito","Priorità","P","C","R","Note","Allegati"]];
+  const s3=[["Priorità","Aspetto","Riferimento","Domanda","Esito","P","C","R","Note","Allegati"]];
+  const crit=[];
+  C.rows.forEach(r=>r.sec.items.forEach((it,i)=>{
+    const e=st.items[r.sec.id+"."+i]||{};const isNo=e.s==="no";
+    const R=(isNo&&e.p&&e.c)?e.p*e.c:"";const pr=isNo&&e.pr?PL[e.pr]:"";
+    s2.push([r.sec.name,r.sec.t,it[1],it[0],r.ap?(e.s?LBL[e.s]:""):"Aspetto non applicabile",pr,isNo?(e.p||""):"",isNo?(e.c||""):"",R,e.n||"",(e.m||[]).length]);
+    if(r.ap&&(isNo||e.s==="ver"))crit.push({o:isNo?(ORD[e.pr]===undefined?8:ORD[e.pr]):9,row:[pr,r.sec.name,it[1],it[0],LBL[e.s],isNo?(e.p||""):"",isNo?(e.c||""):"",R,e.n||"",(e.m||[]).length]});
+  }));
+  crit.sort((a,b)=>a.o-b.o).forEach(x=>s3.push(x.row));
+  const s4=[["Aspetto non applicabile","Titolo","Motivo (screening)"],...C.rows.filter(r=>!r.ap).map(r=>[r.sec.name,r.sec.t,offReason(r.sec)+" = No"])];
+  const wb=XLSX.utils.book_new();
+  [["Sopralluogo",s1,[60,30,34]],["Checklist",s2,[30,18,30,70,20,12,5,5,5,40,9]],["Criticità",s3,[12,30,30,70,16,5,5,5,40,9]],["Non applicabili",s4,[40,22,70]]].forEach(([n,rows,w])=>{
+    const ws=XLSX.utils.aoa_to_sheet(rows);ws["!cols"]=w.map(x=>({wch:x}));XLSX.utils.book_append_sheet(wb,ws,n);
+  });
+  return new Blob([XLSX.write(wb,{bookType:"xlsx",type:"array"})],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+}
+
+/* ---------- BACKUP: ZIP con dati, allegati come file veri, report ed Excel ---------- */
+function extOf(mime,name){
+  const m=(mime||"").toLowerCase();
+  if(m.indexOf("jpeg")>=0)return "jpg";if(m.indexOf("png")>=0)return "png";if(m.indexOf("webp")>=0)return "webp";if(m.indexOf("heic")>=0)return "heic";
+  if(m.indexOf("webm")>=0)return "webm";if(m.indexOf("mp4")>=0||m.indexOf("m4a")>=0||m.indexOf("aac")>=0)return "m4a";if(m.indexOf("ogg")>=0)return "ogg";if(m.indexOf("mpeg")>=0)return "mp3";if(m.indexOf("wav")>=0)return "wav";
+  const x=(name||"").split(".").pop();return /^[a-z0-9]{2,4}$/i.test(x)?x.toLowerCase():"bin";
+}
+async function makeBackupFile(id,st){
+  const files=[];const idx=[];const srcMap={};let n=0;
+  for(const [key,c] of Object.entries(st.items)){
+    for(const m of (c.m||[])){
+      const rec=await mGet(m.id);if(!rec)continue;n++;
+      const path="allegati/"+String(n).padStart(3,"0")+"_"+key.replace(/\./g,"-")+"."+extOf(rec.mime||rec.blob.type,m.name);
+      files.push({name:path,data:rec.blob});srcMap[m.id]=path;
+      idx.push({id:m.id,key,t:m.t,name:m.name,mime:rec.mime||rec.blob.type,file:path});
+    }
+  }
+  const head=[{name:"sopralluogo.json",data:JSON.stringify({v:3,state:st,media:idx},null,1)},{name:"report.html",data:reportHtml(st,m=>srcMap[m.id]||null)}];
+  const xb=xlsxBlob(st);if(xb)head.push({name:"checklist.xlsx",data:xb});
+  const blob=await makeZip(head.concat(files));
+  const name="sopralluogo_"+stampOf(st)+".zip";
+  try{return new File([blob],name,{type:"application/zip"})}catch(e){blob.name=name;return blob}
+}
+function downloadFile(file,nameOpt){
+  const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download=nameOpt||file.name;
+  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+}
+async function shareFile(file){
+  const d={files:[file],title:file.name};
+  if(!(navigator.canShare&&navigator.canShare(d)))return "unsupported";
+  try{await navigator.share(d);return "ok"}catch(e){return e&&e.name==="AbortError"?"cancel":"denied"}
+}
+/* Prepara il backup e lo condivide (o lo scarica). Se il browser non concede la condivisione dopo la preparazione, mostra un pulsante per riprovare. */
+async function backupFlow(o){
+  const {id,st,say,slot,mode,done}=o;
+  say("Preparo il backup…");
+  let f;try{f=await makeBackupFile(id,st)}catch(e){say("Backup non riuscito.");return}
+  if(slot)slot.replaceChildren();
+  const ok=()=>{if(done)done()};
+  if(mode==="download"){downloadFile(f);ok();say("Backup scaricato: "+f.name+" ("+fmtSize(f.size)+")");return}
+  const r=await shareFile(f);
+  if(r==="ok"){ok();say("Backup condiviso ("+fmtSize(f.size)+").")}
+  else if(r==="cancel"){say("Condivisione annullata. Il backup non è stato salvato.")}
+  else if(r==="unsupported"){downloadFile(f);ok();say("Condivisione non disponibile: backup scaricato ("+fmtSize(f.size)+").")}
+  else{
+    say("Backup pronto ("+fmtSize(f.size)+"). Tocca per condividerlo.");
+    if(slot){const b=h("button",{type:"button",class:"btn primary"},"Condividi ora");b.addEventListener("click",async()=>{const r2=await shareFile(f);if(r2==="ok"){ok();slot.replaceChildren();say("Backup condiviso.")}else if(r2!=="cancel"){downloadFile(f);ok();slot.replaceChildren();say("Backup scaricato.")}});slot.replaceChildren(b)}
+    else{downloadFile(f);ok()}
+  }
+}
+async function importBackup(f){
+  let j,files=null;
+  if(/\.zip$/i.test(f.name)||f.type==="application/zip"||f.type==="application/x-zip-compressed"){
+    files=await readZip(f);const jb=files.get("sopralluogo.json");if(!jb)throw new Error("manca sopralluogo.json");
+    j=JSON.parse(new TextDecoder().decode(jb));
+  }else j=JSON.parse(await f.text());
+  const st=normalize((j&&j.state)?j.state:j);const id=newId();const map={};
+  for(const m of ((j&&j.media)||[])){
+    let blob=null;
+    if(files&&m.file&&files.get(m.file))blob=new Blob([files.get(m.file)],{type:m.mime||""});
+    else if(m.data)blob=dataUrlToBlob(m.data);
+    if(!blob)continue;
+    const nid=newId()+Math.random().toString(36).slice(2,5);map[m.id]=nid;
+    await mPut({id:nid,insp:id,key:m.key,t:m.t,mime:m.mime||blob.type,name:m.name,ts:Date.now(),blob});
+  }
+  for(const c of Object.values(st.items)){if(c.m)c.m=c.m.filter(m=>map[m.id]).map(m=>Object.assign({},m,{id:map[m.id]}))}
+  st.sys.created=st.sys.created||Date.now();st.sys.updated=Date.now();st.sys.backup=st.sys.updated;
+  localStorage.setItem("s81:"+id,JSON.stringify(st));
+  return id;
+}
+
+/* ---------- ELENCO SOPRALLUOGHI ---------- */
+function runHome(){
+  document.getElementById("vHome").hidden=false;
+  const hm=document.getElementById("hMsg");
+  function say(t){hm.textContent=t;setTimeout(()=>{if(hm.textContent===t)hm.textContent=""},7000)}
+  const az=document.getElementById("hAz"),se=document.getElementById("hSe");
+  document.getElementById("hNew").addEventListener("click",()=>{
+    const id=newId();const st=normalize(null);
+    st.meta.azienda=az.value.trim();st.meta.sede=se.value.trim();st.meta.data=todayStr();st.sys.created=Date.now();
+    if(!saveState(id,st)){say("Memoria del telefono piena: non riesco a creare il sopralluogo.");return}
+    go("#/c/"+id);
+  });
+  document.getElementById("hImp").addEventListener("change",async ev=>{
+    const f=ev.target.files[0];ev.target.value="";if(!f)return;
+    say("Importo…");
+    try{await importBackup(f);say("Backup importato come nuovo sopralluogo.");draw()}catch(e){say("File non valido: serve un backup ZIP (o .json) di questa app.")}
+  });
+  let deferred=null;const bi=document.getElementById("hInstall");
+  window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferred=e;bi.hidden=false});
+  bi.addEventListener("click",async()=>{if(!deferred)return;deferred.prompt();try{await deferred.userChoice}catch(e){}deferred=null;bi.hidden=true});
+  window.addEventListener("appinstalled",()=>{bi.hidden=true;say("App installata.")});
+
+  const list=document.getElementById("hList");
+  function draw(){
+    const items=listInsp();
+    list.replaceChildren();
+    if(!items.length){list.append(h("p",{class:"foot"},"Nessun sopralluogo salvato su questo telefono. Creane uno qui sopra oppure importa un backup."));return}
+    items.forEach(({id,st})=>{
+      const C=computeFor(st);const sy=st.sys;
+      const title=[st.meta.azienda,st.meta.sede].filter(Boolean).join(" — ")||"Sopralluogo senza nome";
+      let nAtt=0;Object.values(st.items).forEach(c=>nAtt+=(c.m||[]).length);
+      const bk=!sy.backup?["c-ver","Backup mai fatto"]:(sy.updated>sy.backup+1500?["c-ver","Modificato dopo l'ultimo backup ("+fmtDT(sy.backup)+")"]:["c-si","Backup aggiornato ("+fmtDT(sy.backup)+")"]);
+      const slot=h("span");
+      const open=h("button",{type:"button",class:"btn primary"},"Apri");open.addEventListener("click",()=>go("#/c/"+id));
+      const rep=h("button",{type:"button",class:"btn"},"Report");rep.addEventListener("click",()=>go("#/r/"+id));
+      const bkb=h("button",{type:"button",class:"btn"},"Backup ZIP");
+      bkb.addEventListener("click",()=>backupFlow({id,st:loadState(id),say,slot,mode:"share",done:()=>{const s2=loadState(id);s2.sys.backup=Date.now();s2.sys.updated=s2.sys.backup;localStorage.setItem("s81:"+id,JSON.stringify(s2));draw()}}));
+      const del=h("button",{type:"button",class:"btn danger"},"Elimina");let armed=false;
+      del.addEventListener("click",async()=>{
+        if(!armed){armed=true;del.textContent="Conferma: elimina";setTimeout(()=>{armed=false;del.textContent="Elimina"},4000);return}
+        localStorage.removeItem("s81:"+id);await mClear(id);draw();say("Sopralluogo eliminato.");
+      });
+      list.append(h("div",{class:"card insp"},
+        h("div",{class:"insp-h"},h("b",null,title),h("span",{class:"ref"},(st.meta.data?st.meta.data.split("-").reverse().join("/")+" · ":"")+"modificato "+fmtDT(sy.updated))),
+        h("div",{class:"legend"},
+          h("span",{class:"chip c-na"},C.A+"/"+C.T+" voci"),
+          C.N?h("span",{class:"chip c-no"},C.N+" No"):null,
+          C.PC.imm?h("span",{class:"chip c-imm"},C.PC.imm+" immediate"):null,
+          C.V?h("span",{class:"chip c-ver"},C.V+" da verificare"):null,
+          nAtt?h("span",{class:"chip c-na"},nAtt+(nAtt===1?" allegato":" allegati")):null,
+          h("span",{class:"chip "+bk[0]},bk[1])),
+        h("div",{class:"tools",style:"margin-top:10px"},open,rep,bkb,del,slot)));
+    });
+  }
+  draw();
+  const hs=document.getElementById("hStore");
+  (async()=>{
+    let t="I dati restano su questo telefono (nel browser). Fai il backup ZIP a fine sopralluogo: è l'unica copia di sicurezza.";
+    try{
+      if(navigator.storage&&navigator.storage.persist){const p=(await navigator.storage.persisted())||(await navigator.storage.persist());t+=p?" Archiviazione protetta dal browser: attiva.":" Archiviazione protetta dal browser: non concessa (installa l'app sulla schermata Home per aumentare la protezione)."}
+      if(navigator.storage&&navigator.storage.estimate){const e=await navigator.storage.estimate();if(e&&e.usage!=null)t+=" Spazio usato: "+fmtSize(e.usage)+"."}
+    }catch(e){}
+    hs.textContent=t;
+  })();
+}
+
+/* ---------- REPORT A SCHERMO ---------- */
+async function runReport(){
+  const st=loadState(ID);const box=document.getElementById("vReport");box.hidden=false;
+  const style=document.createElement("style");style.textContent=REPORT_CSS;document.head.append(style);
+  box.className="rep";box.textContent="Carico le foto…";
+  const urls={},recs={};
+  for(const c of Object.values(st.items))for(const m of (c.m||[])){const r=await mGet(m.id);if(r){recs[m.id]=r;urls[m.id]=objUrl(r.blob)}}
+  box.innerHTML='<div class="bar2 noprint"><button type="button" id="rBack">‹ Torna alla checklist</button><button type="button" class="p" id="rPrint">Stampa / Salva PDF</button><button type="button" id="rHtml">Scarica report HTML con foto</button><span class="sm" id="rMsg"></span></div>'+reportBody(st,m=>urls[m.id]||null);
+  document.getElementById("rBack").addEventListener("click",()=>go("#/c/"+ID));
+  document.getElementById("rPrint").addEventListener("click",()=>window.print());
+  document.getElementById("rHtml").addEventListener("click",async()=>{
+    const emb={};
+    for(const [id,r] of Object.entries(recs)){if((r.mime||r.blob.type||"").indexOf("image")===0)emb[id]=await blobToDataUrl(r.blob)}
+    const html=reportHtml(st,m=>emb[m.id]||null);
+    downloadFile(new Blob([html],{type:"text/html"}),"report_"+stampOf(st)+".html");
+    document.getElementById("rMsg").textContent="Report scaricato: le foto sono incluse, le note vocali restano nel backup ZIP.";
+  });
+}
+
+function runCheck(){
+document.getElementById("vCheck").hidden=false;
+/* ---------- STATO ---------- */
+const KEY="s81:"+ID;
+let S=loadState(ID)||normalize(null);
+let saveT=null,dead=false;
+function flush(){clearTimeout(saveT);saveT=null;if(dead)return;S.sys.updated=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){say("Memoria del telefono piena: fai il backup ZIP e libera spazio.")}}
+function persist(){clearTimeout(saveT);saveT=setTimeout(flush,200)}
+flushHook=()=>{if(saveT!==null)flush()};
+if(!S.meta.data)S.meta.data=todayStr();
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+function applicable(sec){return applFor(S,sec)}
+const nodes={secs:{},rows:{},scr:{},prio:{}};
+function buildPrio(key){
+  const wrap=h("div",{class:"prio"});
+  const seg=h("div",{class:"seg",role:"group","aria-label":"Priorità"});
+  const btns={};
+  Object.entries(PL).forEach(([v,l])=>{
+    const b=h("button",{type:"button",class:"b-"+v,"aria-pressed":"false"},l);
+    b.addEventListener("click",()=>{const c=S.items[key]||{};if(c.pr===v){delete c.pr;delete c.man}else{c.pr=v;c.man=true}S.items[key]=c;persist();refresh()});
+    btns[v]=b;seg.append(b);
+  });
+  const mk=(opts,field,ph)=>{
+    const s=h("select",{"aria-label":ph},h("option",{value:""},ph),opts.map(([v,l])=>h("option",{value:String(v)},l)));
+    s.addEventListener("change",()=>{const c=S.items[key]||{};if(s.value)c[field]=Number(s.value);else delete c[field];
+      if(c.p&&c.c&&!c.man)c.pr=rating(c.p*c.c)[1];
+      S.items[key]=c;persist();refresh()});
+    return s;
+  };
+  const sp=mk(PV,"p","Probabilità"),sc=mk(CV,"c","Conseguenza");
+  const info=h("span",{class:"rinfo"});
+  wrap.append(h("label",null,"Priorità"),h("div",{class:"row"},seg),h("label",null,"Rischio P × C"),h("div",{class:"row"},sp,sc,info));
+  return {wrap,btns,sp,sc,info};
+}
+const urls=new Map();const mediaLists={};
+const QUAL={low:[800,0.55],mid:[1024,0.65],high:[1600,0.8]};
+async function shrink(file){
+  const q=QUAL[S.meta.photoQ]||QUAL.mid;const max=q[0];
+  try{const bmp=await createImageBitmap(file);const k=Math.min(1,max/Math.max(bmp.width,bmp.height));
+    const c=document.createElement("canvas");c.width=Math.round(bmp.width*k);c.height=Math.round(bmp.height*k);
+    c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
+    return await new Promise(r=>c.toBlob(b=>r(b&&b.size<file.size?b:file),"image/jpeg",q[1]));
+  }catch(e){return file}
+}
+async function addMedia(key,t,blob,name){
+  const id=Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+  const ok=await mPut({id,insp:ID,key,t,mime:blob.type,name,ts:Date.now(),blob});
+  const c=S.items[key]||{};(c.m=c.m||[]).push({id,t,name,size:blob.size});S.items[key]=c;persist();refresh();
+  if(mediaLists[key])renderList(key,mediaLists[key]);
+  if(!ok)say("Allegato tenuto solo in memoria: fai subito il backup ZIP per non perderlo.");
+}
+async function renderList(key,list){
+  const frag=document.createDocumentFragment();
+  const metas=((S.items[key]||{}).m)||[];
+  for(const m of metas){
+    const rec=await mGet(m.id);
+    const row=h("div",{class:"mitem"});
+    if(!rec){row.append(h("span",{class:"ref"},m.name+" (non disponibile su questo dispositivo)"))}
+    else{
+      let u=urls.get(m.id);if(!u){u=objUrl(rec.blob);urls.set(m.id,u)}
+      if(m.t==="img"){const im=h("img",{src:u,alt:"Foto: "+m.name,class:"thumb"});im.addEventListener("click",()=>im.classList.toggle("big"));row.append(im)}
+      else row.append(h("audio",{controls:"",src:u,preload:"metadata"}));
+    }
+    if(m.size)row.append(h("span",{class:"ref"},fmtSize(m.size)+(m.t==="aud"&&m.size>3000000?" · pesante":"")));
+    const del=h("button",{type:"button",class:"btn sm danger","aria-label":"Elimina allegato "+m.name},"Elimina");
+    del.addEventListener("click",()=>{
+      const c=S.items[key]||{};c.m=(c.m||[]).filter(x=>x.id!==m.id);S.items[key]=c;
+      mDel(m.id);const u=urls.get(m.id);if(u){try{URL.revokeObjectURL(u)}catch(e){}urls.delete(m.id)}
+      persist();renderList(key,list);refresh();
+    });
+    row.append(del);frag.append(row);
+  }
+  list.replaceChildren(frag);
+}
+let curRec=null;
+function micAllowed(){try{const p=document.permissionsPolicy||document.featurePolicy;return p&&p.allowsFeature?p.allowsFeature("microphone"):true}catch(e){return true}}
+async function toggleRec(key,btn,fallbackInput){
+  if(curRec){const same=curRec.btn===btn;curRec.mr.stop();if(same)return;await new Promise(r=>setTimeout(r,300))}
+  const canMic=window.isSecureContext&&navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&typeof MediaRecorder!=="undefined"&&micAllowed();
+  if(!canMic){fallbackInput.click();return}
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    const mime=["audio/webm;codecs=opus","audio/webm","audio/mp4"].find(m=>MediaRecorder.isTypeSupported(m))||"";
+    const opts={audioBitsPerSecond:24000};if(mime)opts.mimeType=mime;
+    const mr=new MediaRecorder(stream,opts);const chunks=[];
+    mr.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+    mr.onstop=()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      const type=mr.mimeType||mime||"audio/webm";const blob=new Blob(chunks,{type});
+      curRec=null;btn.textContent="Registra";btn.classList.remove("rec");
+      if(blob.size)addMedia(key,"aud",blob,"nota-vocale."+(type.indexOf("mp4")>=0?"m4a":"webm"));
+    };
+    mr.start();curRec={mr,btn};btn.textContent="Stop";btn.classList.add("rec");
+  }catch(e){say("Microfono non consentito: apro il registratore del telefono.");try{fallbackInput.click()}catch(_){}}
+}
+function buildMedia(key,label){
+  const list=h("div",{class:"mlist"});
+  const mkInput=(accept,multi,fn,capture)=>{
+    const i=h("input",{type:"file",accept:accept,hidden:"",multiple:multi?"":false,capture:capture===undefined?false:capture});
+    i.addEventListener("change",async()=>{const fs=[...i.files];i.value="";for(const f of fs)await fn(f)});
+    return i;
+  };
+  const inImg=mkInput("image/*",false,async f=>addMedia(key,"img",await shrink(f),f.name||"foto.jpg"),"environment");
+  const inRec=mkInput("audio/*",false,async f=>addMedia(key,"aud",f,f.name||"nota-vocale.m4a"),"");
+  const inAud=mkInput("audio/*",false,async f=>addMedia(key,"aud",f,f.name||"audio"));
+  const bPh=h("button",{type:"button",class:"btn sm","aria-label":"Allega foto: "+label},"Foto");
+  bPh.addEventListener("click",()=>inImg.click());
+  const bRec=h("button",{type:"button",class:"btn sm","aria-label":"Registra nota vocale: "+label},"Registra");
+  bRec.addEventListener("click",()=>toggleRec(key,bRec,inRec));
+  const bAu=h("button",{type:"button",class:"btn sm","aria-label":"Allega file audio: "+label},"Audio");
+  bAu.addEventListener("click",()=>inAud.click());
+  mediaLists[key]=list;
+  renderList(key,list);
+  return {btns:h("div",{class:"mbtns"},bPh,bRec,bAu,inImg,inRec,inAud),list};
+}
+
+/* ---------- DATI SOPRALLUOGO ---------- */
+const metaBox=document.getElementById("meta");
+META.forEach(([k,label,type])=>{
+  const inp=h("input",{id:"m-"+k,type:type||"text",autocomplete:"off"});
+  inp.value=S.meta[k]||"";
+  inp.addEventListener("input",()=>{S.meta[k]=inp.value;persist()});
+  metaBox.append(h("label",{class:"f",for:"m-"+k},label,inp));
+});
+
+/* ---------- SCREENING ---------- */
+const leadsMap={};
+SECS.forEach(s=>(s.dep||[]).forEach(d=>{(leadsMap[d]=leadsMap[d]||[]).push(s.name)}));
+const scrBox=document.getElementById("scr");
+SCREEN.forEach(([id,q,ref])=>{
+  const seg=h("div",{class:"seg",role:"group","aria-label":q});
+  const btns={};
+  [["si","Sì"],["no","No"],["ver","Da stabilire"]].forEach(([v,l])=>{
+    const b=h("button",{type:"button",class:"b-"+v,"aria-pressed":"false"},l);
+    b.addEventListener("click",()=>{if(S.screen[id]===v)delete S.screen[id];else S.screen[id]=v;persist();refresh()});
+    btns[v]=b;seg.append(b);
+  });
+  nodes.scr[id]=btns;
+  scrBox.append(h("div",{class:"scr-row"},
+    h("div",null,h("p",{class:"q"},q),h("div",{class:"ref"},ref),leadsMap[id]?h("div",{class:"leads"},"Se No: esclude "+leadsMap[id].join("; ")):null),
+    seg));
+});
+
+/* ---------- SEZIONI ---------- */
+const secsBox=document.getElementById("secs");
+SECS.forEach((sec,si)=>{
+  const stat=h("div",{class:"s-stat"});
+  const mini=h("div",{class:"mini"},h("i"));
+  const sum=h("summary",null,
+    h("div",{class:"s-title"},h("span",{class:"s-t"},sec.t),h("b",null,(si+1)+". "+sec.name)),
+    stat);
+  const offMsg=h("div",{class:"off-msg"},h("span",{class:"offtxt"}),
+    h("button",{type:"button",class:"btn",onclick:()=>{S.force[sec.id]=true;persist();refresh()}},"Valuta comunque"));
+  const itemsBox=h("div",{class:"items"});
+  sec.items.forEach((it,i)=>{
+    const key=sec.id+"."+i;
+    const seg=h("div",{class:"seg",role:"group","aria-label":it[0]});
+    const btns={};
+    [["si","Sì"],["no","No"],["na","N.A."],["ver","Da verificare"]].forEach(([v,l])=>{
+      const b=h("button",{type:"button",class:"b-"+v,"aria-pressed":"false"},l);
+      b.addEventListener("click",()=>{
+        const cur=S.items[key]||{};
+        if(cur.s===v)delete cur.s;else cur.s=v;
+        S.items[key]=cur;persist();refresh();
+      });
+      btns[v]=b;seg.append(b);
+    });
+    const note=h("input",{class:"note",type:"text",placeholder:"Note, documento visto, azione concordata",id:"n-"+key,"aria-label":"Note: "+it[0]});
+    note.value=(S.items[key]||{}).n||"";
+    note.addEventListener("input",()=>{const cur=S.items[key]||{};cur.n=note.value;S.items[key]=cur;persist()});
+    nodes.rows[key]=btns;
+    const pb=buildPrio(key);nodes.prio[key]=pb;
+    const mb=buildMedia(key,it[0]);
+    itemsBox.append(h("div",{class:"item"},
+      h("div",{class:"item-top"},
+        h("div",null,h("p",{class:"q"},it[0]),h("div",{class:"ref"},it[1]),it[2]?h("div",{class:"doc"},it[2]):null),
+        seg),
+      h("div",{class:"noterow"},note,mb.btns),mb.list,pb.wrap));
+  });
+  const allNa=h("div",{class:"sec-tools all-na"},
+    h("button",{type:"button",class:"btn",onclick:()=>{sec.items.forEach((_,i)=>{const k=sec.id+"."+i;const c=S.items[k]||{};if(!c.s)c.s="na";S.items[k]=c});persist();refresh()}},"Segna le voci vuote come N.A."));
+  const det=h("details",{class:"sec",id:"sec-"+sec.id},sum,
+    h("div",{class:"body"},sec.note?h("p",{class:"note-sec"},sec.note):null,offMsg,itemsBox,allNa));
+  nodes.secs[sec.id]={det,stat,mini,offtxt:offMsg.querySelector(".offtxt")};
+  secsBox.append(det);
+});
+
+function compute(){return computeFor(S)}
+
+
+/* ---------- AGGIORNAMENTO ---------- */
+function refresh(){
+  for(const [id,btns] of Object.entries(nodes.scr)){for(const [v,b] of Object.entries(btns))b.setAttribute("aria-pressed",S.screen[id]===v?"true":"false")}
+  for(const [key,btns] of Object.entries(nodes.rows)){const st=(S.items[key]||{}).s;for(const [v,b] of Object.entries(btns))b.setAttribute("aria-pressed",st===v?"true":"false")}
+  for(const [key,pn] of Object.entries(nodes.prio)){
+    const c=S.items[key]||{};
+    pn.wrap.classList.toggle("on",c.s==="no");
+    for(const [v,b] of Object.entries(pn.btns))b.setAttribute("aria-pressed",c.pr===v?"true":"false");
+    pn.sp.value=c.p?String(c.p):"";pn.sc.value=c.c?String(c.c):"";
+    pn.info.textContent=(c.p&&c.c)?"R = "+(c.p*c.c)+" · "+rating(c.p*c.c)[0]:"";
+  }
+  const C=compute();
+  C.rows.forEach(r=>{
+    const nd=nodes.secs[r.sec.id];
+    nd.det.classList.toggle("off",!r.ap&&true);
+    const forced=!!S.force[r.sec.id];
+    nd.det.classList.toggle("forced",forced);
+    const isOff=r.sec.dep&&r.sec.dep.length&&r.sec.dep.every(d=>S.screen[d]==="no");
+    nd.det.classList.toggle("off",!!isOff);
+    nd.offtxt.textContent=isOff?"Escluso dallo screening: "+offReason(r.sec)+" = No.":"";
+    nd.stat.replaceChildren();
+    if(isOff&&!forced){nd.stat.append(h("span",{class:"chip c-na"},"Non applicabile"))}
+    else{
+      const pct=r.t?Math.round(r.a/r.t*100):0;
+      const m=h("div",{class:"mini"},h("i",{style:"width:"+pct+"%"}));
+      nd.stat.append(m,h("span",null,r.a+"/"+r.t));
+      if(r.n)nd.stat.append(h("span",{class:"chip c-no"},r.n+" No"));
+      if(r.v)nd.stat.append(h("span",{class:"chip c-ver"},r.v+" da verificare"));
+    }
+  });
+  document.getElementById("progText").textContent=C.A+" di "+C.T+" voci compilate nelle sezioni applicabili";
+  document.getElementById("progFill").style.width=(C.T?Math.round(C.A/C.T*100):0)+"%";
+  renderSummary(C);
+}
+
+function included(r){return r.ap}
+function renderSummary(C){
+  let nf=0,tot=0;
+  Object.values(S.items).forEach(c=>(c.m||[]).forEach(m=>{nf++;tot+=m.size||0}));
+  document.getElementById("mediaTot").textContent=nf?"Allegati: "+nf+" file, "+fmtSize(tot)+". Il backup ZIP pesa circa quanto gli allegati: foto e audio sono già compressi.":"Nessun allegato.";
+  const cnt=document.getElementById("cnt");cnt.replaceChildren(
+    h("div",{class:"c-si"},h("b",null,String(C.Y)),h("span",null,"Sì")),
+    h("div",{class:"c-no"},h("b",null,String(C.N)),h("span",null,"No")),
+    h("div",{class:"c-ver"},h("b",null,String(C.V)),h("span",null,"Da verificare")),
+    h("div",{class:"c-na"},h("b",null,String(C.X)),h("span",null,"N.A.")),
+    h("div",{class:"c-na"},h("b",null,String(C.T-C.A)),h("span",null,"Da compilare")));
+  const PC={imm:0,alta:0,media:0,bassa:0,nd:0};
+  C.rows.filter(included).forEach(r=>r.sec.items.forEach((it,i)=>{const e=S.items[r.sec.id+"."+i]||{};if(e.s==="no")PC[e.pr||"nd"]++}));
+  [["imm","Immediata"],["alta","Alta"],["media","Media"],["bassa","Bassa"],["nd","No senza priorità"]].forEach(([k,l])=>cnt.append(h("div",{class:k==="nd"?"c-na":"c-"+k},h("b",null,String(PC[k])),h("span",null,l))));
+  const tbl=document.getElementById("tbl");tbl.replaceChildren(
+    h("thead",null,h("tr",null,["Aspetto","Compilate","Sì","No","Da verif.","N.A."].map(x=>h("th",null,x)))),
+    h("tbody",null,C.rows.filter(included).map(r=>h("tr",null,
+      h("td",null,r.sec.name),h("td",{class:"n"},r.a+"/"+r.t),h("td",{class:"n"},String(r.y)),h("td",{class:"n"},String(r.n)),h("td",{class:"n"},String(r.v)),h("td",{class:"n"},String(r.x))))));
+  const mk=(st,box,emptyMsg)=>{
+    const el=document.getElementById(box);el.replaceChildren();
+    let any=false;
+    C.rows.filter(included).forEach(r=>r.sec.items.forEach((it,i)=>{
+      const e=S.items[r.sec.id+"."+i]||{};
+      if(e.s===st){any=true;el.append(h("li",{class:st},h("div",{class:"sn"},r.sec.name),h("div",null,it[0]),h("div",{class:"ref"},it[1]),e.n?h("div",null,"Nota: "+e.n):null))}
+    }));
+    if(!any)el.append(h("li",null,emptyMsg));
+  };
+  const noEl=document.getElementById("listNo");noEl.replaceChildren();
+  const noList=[];
+  C.rows.filter(included).forEach(r=>r.sec.items.forEach((it,i)=>{const e=S.items[r.sec.id+"."+i]||{};if(e.s==="no")noList.push({r,it,e})}));
+  noList.sort((a,b)=>(ORD[a.e.pr]===undefined?9:ORD[a.e.pr])-(ORD[b.e.pr]===undefined?9:ORD[b.e.pr]));
+  noList.forEach(({r,it,e})=>noEl.append(h("li",{class:"no"},
+    h("div",{class:"sn"},r.sec.name),
+    h("div",null,e.pr?h("span",{class:"chip c-"+e.pr},PL[e.pr]):null,e.pr?" ":"",it[0]),
+    h("div",{class:"ref"},it[1]+((e.p&&e.c)?" · R = "+(e.p*e.c):"")+((e.m&&e.m.length)?" · "+e.m.length+" allegati":"")),
+    e.n?h("div",null,"Nota: "+e.n):null)));
+  if(!noList.length)noEl.append(h("li",null,"Nessuna criticità segnata."));
+  mk("ver","listVer","Nessuna voce da verificare.");
+  const off=document.getElementById("listOff");off.replaceChildren();
+  let anyOff=false;
+  C.rows.forEach(r=>{if(!r.ap){anyOff=true;off.append(h("li",null,h("div",null,r.sec.name),h("div",{class:"ref"},r.sec.t+" — escluso: "+offReason(r.sec)+" = No")))}});
+  if(!anyOff)off.append(h("li",null,"Nessun aspetto escluso dallo screening."));
+}
+
+/* ---------- BARRA E AZIONI ---------- */
+document.getElementById("btnOpen").addEventListener("click",()=>document.querySelectorAll("details.sec").forEach(d=>d.open=true));
+document.getElementById("btnClose").addEventListener("click",()=>document.querySelectorAll("details.sec").forEach(d=>d.open=false));
+const msg=document.getElementById("msg");
+function say(t){msg.textContent=t;setTimeout(()=>{if(msg.textContent===t)msg.textContent=""},5000)}
+
+
+function stamp(){return stampOf(S)}
+document.getElementById("btnBack").addEventListener("click",()=>go("#/"));
+document.getElementById("btnSum").addEventListener("click",()=>document.getElementById("riepilogo").scrollIntoView({behavior:"smooth"}));
+const pq=document.getElementById("photoQ");
+pq.value=S.meta.photoQ||"mid";
+pq.addEventListener("change",()=>{S.meta.photoQ=pq.value;persist()});
+const slot=document.getElementById("shareSlot");
+const bkDone=()=>{S.sys.backup=Date.now();flush()};
+document.getElementById("btnZipShare").addEventListener("click",()=>{flush();backupFlow({id:ID,st:S,say,slot,mode:"share",done:bkDone})});
+document.getElementById("btnZip").addEventListener("click",()=>{flush();backupFlow({id:ID,st:S,say,slot,mode:"download",done:bkDone})});
+document.getElementById("btnRep").addEventListener("click",()=>go("#/r/"+ID));
+let resetArmed=false;
+document.getElementById("btnReset").addEventListener("click",async ev=>{
+  const b=ev.currentTarget;
+  if(!resetArmed){resetArmed=true;b.textContent="Conferma: elimina";setTimeout(()=>{resetArmed=false;b.textContent="Elimina sopralluogo"},4000);return}
+  dead=true;clearTimeout(saveT);try{localStorage.removeItem(KEY)}catch(e){}
+  await mClear(ID);flushHook=null;go("#/");
+});
+
+document.getElementById("btnCopy").addEventListener("click",async()=>{
+  const C=compute();const out=[];
+  out.push("Sopralluogo RSPP — "+[S.meta.azienda,S.meta.sede,S.meta.data].filter(Boolean).join(" — "));
+  C.rows.filter(included).forEach(r=>{
+    const lines=[];
+    r.sec.items.forEach((it,i)=>{const e=S.items[r.sec.id+"."+i]||{};if(e.s==="no"||e.s==="ver")lines.push("  ["+LBL[e.s]+(e.s==="no"&&e.pr?" · "+PL[e.pr]:"")+"] "+it[0]+" ("+it[1]+")"+(e.n?" — "+e.n:""))});
+    if(lines.length)out.push("",r.sec.name,...lines);
+  });
+  try{await navigator.clipboard.writeText(out.join("\n"));say("Copiato negli appunti.")}catch(e){say("Copia non consentita in questa vista.")}
+});
+document.getElementById("btnXlsx").addEventListener("click",()=>{
+  const b=xlsxBlob(S);
+  if(!b){say("Libreria Excel non caricata: riapri l'app con la rete attiva una volta.");return}
+  downloadFile(b,"sopralluogo_"+stamp()+".xlsx");say("Excel scaricato.");
+});
+refresh();
+}
+
+/* ---------- ROUTER E SERVICE WORKER ---------- */
+const RT=location.hash.match(/^#\/(c|r)\/([A-Za-z0-9_-]+)/)||[];
+const ID=RT[2]||null,MODE=RT[1]||"h";
+window.addEventListener("hashchange",()=>location.reload());
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"&&flushHook)flushHook()});
+window.addEventListener("pagehide",()=>{if(flushHook)flushHook()});
+if(MODE==="c"&&loadState(ID))runCheck();
+else if(MODE==="r"&&loadState(ID))runReport();
+else{if(ID)history.replaceState(null,"",location.pathname+location.search);runHome()}
+if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol)){
+  const had=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{
+    if(!had)return;
+    const b=h("div",{class:"upd"},"Nuova versione pronta. ",h("button",{type:"button",class:"btn sm",onclick:()=>{if(flushHook)flushHook();location.reload()}},"Ricarica"));
+    document.body.append(b);
+  });
+  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+
+});
+</script>
+</body>
+</html>
